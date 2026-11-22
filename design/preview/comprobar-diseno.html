@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Comprobación de tamaños · Mi Casa · Fase 02</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#contenido">Ir al contenido</a>
+  <main id="contenido" class="gallery-shell">
+    <header class="page-intro">
+      <p class="eyebrow">Herramienta de revisión · No pertenece a la aplicación</p>
+      <h1>Comprobar los tamaños del diseño</h1>
+      <p>Revisa once vistas a 360, 390, 430 y 768 px, al 100 % y al 200 % de texto: 88 combinaciones.</p>
+      <p>El texto ampliado se simula con <code>html { font-size: 200% }</code>. No es zoom completo del navegador ni una auditoría WCAG.</p>
+      <p>Este comprobador usa JavaScript solo para medir el diseño. Las pantallas de Mi Casa siguen siendo HTML y CSS, sin guardado, OCR ni recuperación.</p>
+      <a class="section-link" href="galeria.html">Volver a las pantallas</a>
+    </header>
+    <section class="panel stack" aria-labelledby="instrucciones">
+      <h2 id="instrucciones">Abrir mediante un servidor local</h2>
+      <p>Para que el navegador pueda medir los marcos de página, sirve esta carpeta en tu computador. No es un despliegue ni requiere instalar dependencias:</p>
+      <p><code>python3 -m http.server 8012 --bind 127.0.0.1 --directory /mnt/Datos/mi-casa/design/preview</code></p>
+      <p>Abre <a href="http://127.0.0.1:8012/comprobar-diseno.html">el comprobador local</a>. Las pantallas también se pueden abrir directamente como archivos para inspección manual.</p>
+    </section>
+    <div class="qa-controls">
+      <button class="btn" id="ejecutar" type="button">Comprobar las 88 vistas</button>
+      <button class="btn btn-secondary" id="copiar" type="button" disabled>Copiar resultados</button>
+    </div>
+    <p id="estado" role="status">Sin ejecutar. Todavía no hay resultados de renderizado.</p>
+    <p class="muted">El marco inferior muestra el caso actual. Su zona exterior permite desplazarse si el ancho de prueba supera tu pantalla; eso no se cuenta como desbordamiento de la vista evaluada.</p>
+    <div class="qa-stage"><iframe id="vista" title="Vista que se está comprobando" src="about:blank"></iframe></div>
+    <section aria-labelledby="resultados-titulo">
+      <h2 id="resultados-titulo">Resultados por vista</h2>
+      <p>Las comprobaciones automáticas detectan geometría y acceso programático al foco. Tabulación real, lector de pantalla y comprensión visual requieren revisión manual.</p>
+      <div class="qa-results" id="resultados"></div>
+    </section>
+  </main>
+  <script>
+  'use strict';
+  const pages = [
+    'index.html', 'inventario.html', 'registrar-compra.html', 'revisar-compra.html',
+    'mi-lista.html', 'gastos.html', 'estados.html', 'capturar-recibo.html',
+    'revisar-compra-pendientes.html', 'revisar-compra-grande.html', 'revisar-pendientes.html'
+  ];
+  const widths = [360, 390, 430, 768];
+  const scales = [100, 200];
+  const frame = document.getElementById('vista');
+  const run = document.getElementById('ejecutar');
+  const copy = document.getElementById('copiar');
+  const status = document.getElementById('estado');
+  const output = document.getElementById('resultados');
+  let report = [];
+  function load(file) {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => { frame.onload = null; reject(new Error('La vista no terminó de cargar.')); }, 10000);
+      frame.onload = () => { clearTimeout(timer); frame.onload = null; resolve(); };
+      frame.src = file;
+    });
+  }
+  function visible(el) {
+    const s = el.ownerDocument.defaultView.getComputedStyle(el);
+    return el.getClientRects().length > 0 && s.display !== 'none' && s.visibility !== 'hidden' && !el.closest('.icon-defs');
+  }
+  function inspect(file, width, scale, baselineText) {
+    const doc = frame.contentDocument;
+    const win = frame.contentWindow;
+    const problems = [];
+    const viewport = doc.documentElement.clientWidth;
+    const bodyText = parseFloat(win.getComputedStyle(doc.body).fontSize);
+    if (Math.abs(bodyText - baselineText * scale / 100) > 0.25) problems.push('El cuerpo no conserva la escala de texto esperada.');
+    const overflow = Math.max(doc.body.scrollWidth, doc.documentElement.scrollWidth) - viewport;
+    if (overflow > 1) problems.push(`Desbordamiento horizontal de ${Math.ceil(overflow)} px.`);
+    const outside = [...doc.querySelectorAll('main *, .app-header *, .bottom-nav *, .context-nav *')]
+      .filter(visible).filter(el => { const r = el.getBoundingClientRect(); return r.width > 0 && (r.left < -1 || r.right > viewport + 1); })
+      .slice(0, 8).map(el => `${el.tagName.toLowerCase()}.${el.className.baseVal ?? el.className}`);
+    if (outside.length) problems.push('Elementos fuera de ancho: ' + outside.join(', '));
+    const nav = doc.querySelector('.bottom-nav');
+    let navigation = 'Contextual, en el flujo de la página';
+    let navHeight = 0;
+    if (nav) {
+      const pos = win.getComputedStyle(nav).position;
+      navHeight = Math.round(nav.getBoundingClientRect().height);
+      navigation = `${pos}, ${navHeight} px de alto`;
+      if (pos === 'fixed' && navHeight > win.innerHeight / 4) problems.push('La navegación fija ocupa más de un cuarto del alto.');
+      if (pos === 'fixed' && (nav.getBoundingClientRect().top < 0 || nav.getBoundingClientRect().bottom > win.innerHeight + 1)) problems.push('La barra fija no está dentro del viewport.');
+      if (scale === 200 && width <= 430 && pos === 'fixed') problems.push('La navegación sigue fija con texto grande en móvil estrecho.');
+      for (const label of nav.querySelectorAll('.nav-link span')) {
+        if (label.scrollWidth > label.parentElement.clientWidth + 1) problems.push('Una etiqueta de navegación no cabe completa.');
+      }
+    }
+    for (const input of doc.querySelectorAll('input, select, textarea')) {
+      if (!input.labels?.length && !input.hasAttribute('aria-label') && !input.hasAttribute('aria-labelledby')) problems.push(`Campo sin etiqueta: ${input.id}.`);
+    }
+    const large = file === 'revisar-compra-grande.html';
+    const pending = file === 'revisar-pendientes.html';
+    if (large || pending) {
+      const rows = [...doc.querySelectorAll('.compact-review-item')];
+      if (rows.length !== (large ? 50 : 6)) problems.push('Cantidad de líneas de la muestra incorrecta.');
+      if (pending && rows.some(el => el.dataset.reviewPending !== 'true')) problems.push('El filtro incluye una línea que no es pendiente.');
+      if (large && rows.reduce((sum, el) => sum + Number(el.dataset.lineAmount), 0) !== 435600) problems.push('El total ficticio no coincide con las líneas.');
+      if (!doc.querySelector('a[href="estados.html#anadir-producto"]') || !doc.querySelector('a[href="#confirmar-compra"]')) problems.push('Falta un acceso directo de la revisión.');
+    }
+    const controls = [...doc.querySelectorAll('main a, main button:not(:disabled), main input:not(:disabled), main summary')].filter(visible);
+    let focusCount = 0;
+    for (const control of controls) {
+      control.focus({preventScroll: true});
+      if (doc.activeElement !== control) { problems.push('No recibe foco: ' + control.textContent.trim().slice(0, 35)); continue; }
+      focusCount++;
+      control.scrollIntoView({block: 'center', inline: 'nearest'});
+      const r = control.getBoundingClientRect();
+      if (nav && win.getComputedStyle(nav).position === 'fixed') {
+        const n = nav.getBoundingClientRect();
+        if (r.top < n.bottom && r.bottom > n.top) problems.push('Un control enfocado queda bajo la navegación: ' + control.textContent.trim().slice(0, 35));
+      }
+    }
+    win.scrollTo(0, 0);
+    return {file, width, scale, viewport, bodyText, navigation, navHeight, focusCount, problems: [...new Set(problems)]};
+  }
+  run.addEventListener('click', async () => {
+    if (!['http:', 'https:'].includes(location.protocol)) {
+      status.textContent = 'No ejecutado. Abre este comprobador mediante el servidor local indicado arriba; los archivos directos pueden tener orígenes separados.';
+      return;
+    }
+    run.disabled = true;
+    copy.disabled = true;
+    output.replaceChildren();
+    report = [];
+    try {
+      for (const file of pages) for (const width of widths) for (const scale of scales) {
+        status.textContent = `Comprobando ${file}, ${width} px, texto ${scale} % (${report.length + 1}/88).`;
+        frame.style.width = width + 'px';
+        await load(file);
+        if (!frame.contentDocument?.body) throw new Error('No se pudo acceder a la vista local.');
+        const baselineText = parseFloat(frame.contentWindow.getComputedStyle(frame.contentDocument.body).fontSize);
+        frame.contentDocument.documentElement.style.fontSize = scale + '%';
+        await frame.contentDocument.fonts.ready;
+        const result = inspect(file, width, scale, baselineText);
+        report.push(result);
+        const item = document.createElement('article');
+        item.className = 'qa-case';
+        const title = document.createElement('h3');
+        title.textContent = `${file} · ${width} px · texto ${scale} %`;
+        const detail = document.createElement('p');
+        detail.textContent = `Texto: ${result.bodyText} px. Navegación: ${result.navigation}. ${result.focusCount} controles aceptan foco programático.`;
+        const outcome = document.createElement('p');
+        outcome.textContent = result.problems.length ? result.problems.join(' ') : 'Sin problemas en las comprobaciones geométricas realizadas. Falta revisión manual.';
+        item.append(title, detail, outcome);
+        output.append(item);
+      }
+      const failed = report.filter(item => item.problems.length).length;
+      status.textContent = `Terminadas ${report.length} combinaciones. ${failed} con observaciones. Se necesita revisión visual, tabulación real y lector de pantalla.`;
+    } catch (error) {
+      status.textContent = `Comprobación interrumpida tras ${report.length} casos: ${error.message}. No se dan por aprobados los casos restantes.`;
+    } finally {
+      run.disabled = false;
+      copy.disabled = report.length === 0;
+    }
+  });
+  copy.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(JSON.stringify(report, null, 2)); status.textContent = 'Resultados copiados. Incluyen solo mediciones del diseño ficticio.'; }
+    catch { status.textContent = 'El navegador no permitió copiar. Puedes seleccionar los resultados de esta página.'; }
+  });
+  </script>
+</body>
+</html>
