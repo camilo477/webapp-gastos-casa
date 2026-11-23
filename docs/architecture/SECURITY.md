@@ -1,6 +1,16 @@
-# Seguridad propuesta y condiciones de aprobación
+# Seguridad — estado vigente y antecedentes de diseño
 
-**Pendiente de aprobación y de pruebas de reglas.** No existe un proyecto Firebase ni reglas desplegadas. El análisis distingue autorización, atomicidad y validación del negocio: ninguna sustituye a las otras dos.
+## Estado vigente — 05C-5, 23-11-2026
+
+El propietario confirmó visualmente mi-casa-camilo-test, Firestore (default) vacío, Spark y reglas activas deny-all; después confirmó Standard, Firestore Native, us-east1, backups programados deshabilitados y cifrado administrado por Google. Es evidencia aportada por él, **no verificación administrativa independiente de Codex**. El lector real permanece bloqueado; no se publicaron reglas personalizadas, crearon ACL/datos o desplegaron servicios.
+
+Para lectura futura se audita [inventory-read.firestore.rules](../../security/inventory-read.firestore.rules): Auth, UID de token igual a ruta y ACL administrativa válida/habilitada; get/list solo de productos propios, list acotado a 100; escrituras, ACL, finanzas y rutas desconocidas cerradas. El UID real nunca se introduce en reglas o documentación. Las pruebas adversariales de Emulator verifican la política, no IAM, reglas activas o un acceso real. **No usar el esqueleto histórico inferior como artefacto de publicación.**
+
+El [procedimiento de verificación/publicación/ACL](FIRESTORE_READ_RELEASE_RUNBOOK.md) distingue consultas permitidas ahora de cambios que requieren otra autorización. [FASE_05C_5](../FASE_05C_5.md) registra resultados y límites. DP-03/07/08/10 están aprobadas únicamente para inventario; las DP financieras, persistencia y demás aspectos pendientes no se resuelven aquí.
+
+## Antecedente histórico — análisis 04A
+
+Los apartados siguientes conservan el análisis original, su esqueleto y resultados de entonces. Sus afirmaciones de ausencia de proyecto/pruebas/proveedores y ubicación del UID en reglas no describen el estado vigente. La autorización por ACL sustituye ese esqueleto para la preparación actual. El análisis distingue autorización, atomicidad y validación del negocio: ninguna sustituye a las otras dos.
 
 ## Amenazas y fronteras
 

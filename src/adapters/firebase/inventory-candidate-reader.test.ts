@@ -1,7 +1,7 @@
 import { beforeEach,describe,expect,it,vi } from 'vitest';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore/lite';
-import { applyCommand,toDocument } from '@mi-casa/inventory-contract';
+import { applyCommand,toDocument,CATEGORIES } from '@mi-casa/inventory-contract';
 import { createCandidateReader } from './inventory-candidate-reader';
 const sdk=vi.hoisted(()=>({getDocs:vi.fn(),getDoc:vi.fn(),terminate:vi.fn(),query:vi.fn((...v:unknown[])=>v),collection:vi.fn((...v:unknown[])=>v),doc:vi.fn((...v:unknown[])=>v),where:vi.fn((...v:unknown[])=>v),orderBy:vi.fn((...v:unknown[])=>v),limit:vi.fn((v:number)=>v),startAfter:vi.fn((v:string)=>v)}));
 vi.mock('firebase/firestore/lite',()=>({...sdk,documentId:()=> '__name__'}));
@@ -35,5 +35,30 @@ describe('one candidate reader for local and future blocked entry',()=>{
  it('disposal prevents further reads and no invalid product path is requested',async()=>{
   const service=reader();await expect(service.byId('../other')).rejects.toMatchObject({reason:'query'});expect(sdk.getDoc).not.toHaveBeenCalled();
   await service.dispose();await expect(service.page(request)).rejects.toMatchObject({reason:'access'});expect(sdk.terminate).toHaveBeenCalledOnce();
+ });
+ it('recognizes all seven approved category IDs and preserves exact fractional stock',async()=>{
+  const service=reader();
+  for(const [categoryId,label] of Object.entries(CATEGORIES)){
+   const row=item(categoryId);sdk.getDocs.mockResolvedValueOnce({docs:[{id:row.id,data:()=>({...row.data(),categoryId,control:'exact',baseUnit:'kg',stock:{quantityMilli:1250}})}],size:1});
+   const result=await service.page({...request,category:label});
+   expect(result.items[0]).toMatchObject({category:label,control:'exact',unit:'kg',quantityMilli:1250,version:1});
+   expect(sdk.where).toHaveBeenLastCalledWith('categoryId','==',categoryId);
+  }
+ });
+ it('returns an empty inventory and absent product without demo data or a write capability',async()=>{
+  sdk.getDocs.mockResolvedValueOnce({docs:[],size:0});sdk.getDoc.mockResolvedValueOnce({exists:()=>false});const service=reader();
+  expect(await service.page(request)).toEqual({items:[],nextCursor:null});expect(await service.byId('missing')).toBeNull();expect('mutate'in service).toBe(false);
+ });
+ it('translates permissions, expired-session and network errors without exposing SDK messages',async()=>{
+  for(const [code,reason] of [['permission-denied','access'],['unauthenticated','access'],['unavailable','connection'],['deadline-exceeded','connection']]){
+   sdk.getDocs.mockRejectedValueOnce({code,message:'internal-fixture-message'});
+   const failure=await reader().page(request).catch(error=>error);
+   expect(failure).toMatchObject({reason});expect(failure.message).not.toContain('internal-fixture-message');
+  }
+ });
+ it('discards an in-flight response when the reader is disposed during the request',async()=>{
+  let finish!:(value:unknown)=>void;sdk.getDocs.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));const service=reader();
+  const pending=service.page(request);const rejected=expect(pending).rejects.toMatchObject({reason:'access'});
+  await service.dispose();finish({docs:[item()],size:1});await rejected;
  });
 });

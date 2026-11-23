@@ -1,5 +1,7 @@
 # Preparación de Firestore de solo lectura — guía del propietario
 
+**Estado 05C-5, 23-11-2026:** el propietario confirmó visualmente que (default) existe en mi-casa-camilo-test, está vacío, sigue en Spark y tiene reglas activas deny-all. Confirmó además en Google Cloud Console Standard, Firestore Native, us-east1, backups programados deshabilitados y cifrado administrado por Google. No es una comprobación administrativa independiente de Codex. No crear otra base ni repetir el paso histórico de creación inferior. El [procedimiento final de verificación y activación futura](FIRESTORE_READ_RELEASE_RUNBOOK.md) detalla consultas de metadatos, publicación y ACL, **sin autorizar esos cambios**. El [informe 05C-5](../FASE_05C_5.md) conserva evidencia y resultados locales. React sigue bloqueado y no se escriben datos reales.
+
 Actualizado el 23-11-2026 en **05C-4**. Proyecto aprobado: **mi-casa-camilo-test**. El propietario autorizó crear **manualmente** una única base Standard/Native, (default), us-east1, Spark y seguridad inicial deny-all. Codex no crea ni consulta la base real. La autorización no demuestra su existencia: evidencia/confirmación visual y su procedencia se registran en [FASE_05C_4](../FASE_05C_4.md). **Publicación de reglas, ACL, datos, conexión, Blaze y despliegues siguen sin autorización.**
 
 **Actualización 05C-3:** la preparación futura de lectura ahora exige el [contrato candidato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md), no el formato experimental. La factoría permanece bloqueada por código. No se creó ni conectó Firestore real.

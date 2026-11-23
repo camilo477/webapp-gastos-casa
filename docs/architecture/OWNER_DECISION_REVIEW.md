@@ -15,6 +15,8 @@
 
 **Sin nueva aprobación:** DP-01, DP-02, DP-04, DP-05, DP-06, DP-09, DP-11, DP-12 y DP-13 conservan sus aspectos pendientes. Aprobar precisión física no aprueba redondeo monetario; elegir arquitectura de inventario no aprueba contratos financieros, OCR o persistencia de borradores.
 
+**Seguimiento 05C-5, 23-11-2026:** el propietario confirmó visualmente en Console la creación de (default), vacía, Spark, deny-all, Standard/Native/us-east1, backups programados deshabilitados y cifrado administrado por Google. Se registra como evidencia aportada por él, no comprobación administrativa independiente ni permiso de conexión. No se publican reglas personalizadas, crean ACL o datos, activan Blaze o despliegan servicios. [Informe y verificaciones](../FASE_05C_5.md).
+
 ## Antecedente histórico — revisión 04D
 
 Lo siguiente conserva las recomendaciones y confirmaciones solicitadas el 22-11-2026, **no el estado vigente de los cuatro alcances aprobados arriba**. Las preferencias recibidas en 04D no fueron entonces aprobación de sus políticas detalladas.

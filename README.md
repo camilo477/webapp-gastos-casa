@@ -68,6 +68,10 @@ El propietario aprobó el 23-11-2026 DP-03/07/08/10 para inventory-candidate-v1/
 
 Sin cambios de aplicación, Authentication o reglas: demo y emuladores continúan funcionando; el adaptador real sigue bloqueado. No publicar reglas/ACL, introducir datos, activar Blaze o desplegar servicios. [Alcances aprobados](docs/architecture/OWNER_DECISION_REVIEW.md), [evidencia y pruebas 05C-4](docs/FASE_05C_4.md). Los textos 05C-3 anteriores describen esa entrega histórica; límites técnicos/económicos y migración conservan sus pendientes.
 
+## Preparación final de lectura — Fase 05C-5
+
+La **Fase 05C-5** registra la confirmación visual del propietario de Firestore Standard/Native, (default), us-east1, vacío, Spark y deny-all, sin verificación administrativa independiente de Codex. Añade pruebas adversariales y un [procedimiento de verificación y futura activación](docs/architecture/FIRESTORE_READ_RELEASE_RUNBOOK.md); no publica reglas/ACL ni conecta React a Firestore real. [Resultados y límites](docs/FASE_05C_5.md). No crear otra base ni repetir los pasos históricos de creación.
+
 ## Rutas
 
 | Ruta | Pantalla |

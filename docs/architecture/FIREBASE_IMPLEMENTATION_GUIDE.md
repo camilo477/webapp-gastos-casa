@@ -1,5 +1,11 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
+## Verificación y preparación final — Fase 05C-5
+
+El propietario confirmó visualmente la base (default), vacía, Spark y deny-all; después Standard/Native/us-east1, backups programados deshabilitados y cifrado administrado por Google. No se obtuvo verificación administrativa independiente ni se conectó el inventario. El [runbook de lectura](FIRESTORE_READ_RELEASE_RUNBOOK.md) separa comprobación de metadatos permitida de publicación/ACL/activación que requieren autorización posterior. No ejecutar de nuevo la creación de base de antecedentes anteriores.
+
+Las reglas preparadas conservan su contenido y escrituras cerradas. Se amplían pruebas adversariales de reglas y del lector consolidado sin cambiar aplicación, autenticación o guards. [Evidencia, compatibilidad y resultados 05C-5](../FASE_05C_5.md). No publicar reglas, crear ACL/datos, habilitar lectura, activar Blaze o desplegar servicios en esta fase.
+
 ## Aprobaciones y creación manual — Fase 05C-4
 
 El propietario aprobó el 23-11-2026 DP-03/07/08/10 exclusivamente para el [inventario consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md). Configuración elegida: mi-casa-camilo-test, Firestore Standard/Native, (default), us-east1 y Spark. Puede crear la base **manualmente**, con reglas iniciales de producción deny-all. La creación no está automatizada ni se deduce de esta aprobación; ver [evidencia y resultados 05C-4](../FASE_05C_4.md).
