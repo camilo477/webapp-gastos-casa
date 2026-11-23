@@ -29,7 +29,20 @@ Abrir `http://127.0.0.1:5173` o el puerto que anuncie Vite. Si las dependencias 
 - Mi lista: crear, añadir, cambiar cantidades, marcar/desmarcar, quitar y finalizar. Marcar no cambia inventario ni dinero.
 - Advertencia al abandonar un borrador con cambios, incluido Atrás dentro de la aplicación. No se recuperan borradores después de recargar.
 
-El prototipo React no está conectado a Firebase, autenticación, OCR, servicios externos, persistencia, service worker ni despliegue. Sus operaciones son locales y sincrónicas; su comportamiento no demuestra transacciones ni sincronización remotas. Los emuladores y ejecutores aislados se prueban por separado.
+El modo demostración no inicializa Firebase ni requiere cuenta. En la **Fase 05B-1** se añade un modo separado de autenticación contra emuladores locales. En ambos modos, compras, inventario, gastos y lista siguen siendo ejemplos en memoria; no se envían al servidor. No hay OCR, service worker ni despliegue.
+
+## Probar el acceso local — Fase 05B-1
+
+Requiere Node **24.22.3**, Java≥21 y las dependencias de ambos paquetes. No requiere cuenta Firebase, proyecto real, claves ni login del CLI.
+
+1. Ejecutar `npm run firebase:local:start` y dejarlo activo.
+2. En otra terminal, ejecutar `npm run firebase:auth:seed` para preparar las cuentas ficticias.
+3. Ejecutar `npm run dev:emulator` y abrir `http://127.0.0.1:5174`.
+4. Ingresar con el fixture público `duena@example.test` y contraseña **solo ficticia** `Solo-local-05B1!`. No reutilizarla con ninguna cuenta real.
+
+`npm run dev` sigue abriendo el modo demostración sin cuenta (sin `.env` local que cambie el modo). El acceso no ofrece registro ni proveedores reales. Solo admite correos de prueba `@example.test` y autoriza el UID fijo del laboratorio. Los ejemplos mostrados no pertenecen a la cuenta.
+
+`npm run test:auth:emulator` inicia emuladores, prepara fixtures, ejecuta Playwright y apaga los servicios automáticamente; usar con los emuladores manuales detenidos. No importar/exportar bases. La [guía](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md) explica configuración, persistencia oficial de sesión y límites; el [informe 05B-1](docs/FASE_05B_1.md) recoge pruebas y decisiones pendientes. Staging y producción permanecen bloqueados.
 
 ## Rutas
 

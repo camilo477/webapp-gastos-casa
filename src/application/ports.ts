@@ -1,10 +1,18 @@
 // Application boundaries only. DTO generics await functional DP approval.
-// No Firebase SDK, provider choice, persistence policy or React imports here.
+// No Firebase SDK or React imports. Production providers and data persistence await approval.
 export type Session = { uid: string } | null;
+export type SessionState = { scope: number } & (
+  { status: 'checking' } | { status: 'anonymous'; message?: string } |
+  { status: 'authenticated'; session: NonNullable<Session> } | { status: 'error'; message: string }
+);
+export type SignInRequest = { method: 'password'; email: string; password: string };
 export interface SessionPort {
-  current(): Promise<Session>;
-  subscribe(listener: (session: Session) => void): () => void;
+  current(): SessionState;
+  subscribe(listener: () => void): () => void;
+  signIn(request: SignInRequest): Promise<void>;
   signOut(): Promise<void>;
+  recheck(): Promise<void>;
+  dispose(): Promise<void>;
 }
 export type Page<T> = { items: readonly T[]; nextCursor: string | null };
 export type PageRequest = { limit: number; cursor: string | null };

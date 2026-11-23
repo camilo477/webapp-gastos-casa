@@ -1,9 +1,25 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
-import { App, appRoutes } from './app/App';
-import { requireDemoConfiguration } from './application/configuration';
+import { App, createAppRoutes } from './app/App';
+import { readConfiguration, requireLocalAuthentication } from './application/configuration';
+import type { SessionPort } from './application/ports';
 import './styles/app.css';
-requireDemoConfiguration(import.meta.env);
-const router=createBrowserRouter(appRoutes);
-createRoot(document.getElementById('root')!).render(<StrictMode><App router={router}/></StrictMode>);
+async function start() {
+  const configuration = readConfiguration(import.meta.env);
+  let session: SessionPort | undefined;
+  if (configuration.mode === 'emulator') {
+    requireLocalAuthentication(configuration, window.location.hostname);
+    const { createEmulatorSession } = await import('./adapters/firebase/authentication');
+    session = createEmulatorSession(configuration, window.location.hostname);
+  }
+  const router = createBrowserRouter(createAppRoutes(configuration.mode === 'emulator'));
+  createRoot(document.getElementById('root')!).render(<StrictMode><App router={router} session={session}/></StrictMode>);
+  import.meta.hot?.dispose(() => { router.dispose(); void session?.dispose(); });
+}
+void start().catch(() => {
+  // Configuration and import failures never fall back to demo or a remote project.
+  const root = document.getElementById('root')!;
+  root.textContent = 'No podemos abrir Mi Casa con esta configuración. Revisa la configuración local antes de continuar.';
+  root.setAttribute('role', 'alert');
+});

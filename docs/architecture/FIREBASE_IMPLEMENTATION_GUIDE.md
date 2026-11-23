@@ -1,4 +1,82 @@
-# Guía de implementación Firebase — Preparación local 05A
+# Guía de implementación Firebase — Infraestructura 05A y Auth local 05B-1
+
+## Estado actual: autenticación local 05B-1
+
+Actualización: 23-11-2026. Solo está autorizado **Firebase Authentication Emulator desde React**. Staging/producción y los adaptadores de datos del frontend permanecen bloqueados. La sección 05A inferior describe la infraestructura original; la excepción actual es el adaptador de sesión documentado aquí. DP-01 a DP-13 conservan los aspectos pendientes. No se inicia 05B-2.
+
+### Capas y seguridad
+
+- `src/application/ports.ts`: puerto `SessionPort`, estados `checking`, `anonymous`, `authenticated`, `error`, entrada discriminada por método y alcance de estado de ejemplos. No importa SDK ni React. Incorporar después un método autorizado no exige cambiar las pantallas del dominio.
+- `src/adapters/firebase/authentication.ts`: único adaptador Auth, importado dinámicamente desde `main.tsx` tras validar modo, proyecto, hosts y hostname loopback. Usa exclusivamente `firebase/app` y `firebase/auth` cliente **12.19.0**, versión ya fijada en raíz, ahora dependencia de ejecución. Se conserva el SDK 13.4.0 del paquete servidor y los laboratorios históricos independientes.
+- `initializeAuth` con `browserLocalPersistence` y `connectAuthEmulator` síncrono antes de cualquier operación asíncrona. Proyecto `demo-mi-casa-05a`, API key ficticia `demo-only-05b-1`, app nombrada para separar su almacenamiento. No se usa `authDomain`, popup, Google, Analytics, Admin, Firestore ni Functions en React.
+- Identidad siempre desde el usuario Auth observado; únicamente `demo-owner-05a` puede abrir las pantallas locales. No se autoriza por correo, campos del formulario, primer login ni cuerpo de peticiones. Se rechaza cualquier otro UID y se intenta retirar su sesión local.
+- `SessionContext` integra el puerto con `useSyncExternalStore`. El guard no monta rutas privadas mientras se valida. Un contador de alcance reinicia `DemoProvider` en logout, identidad distinta y error de verificación; los resultados asíncronos obsoletos se ignoran mediante versión. Renovar la misma identidad conserva el alcance.
+- Todas las rutas del prototipo están protegidas en modo emulador. `/acceso` es pública. Tras ingresar se recupera la ruta interna solicitada; no se admiten redirecciones externas. En demo `/acceso` vuelve al inicio y las rutas normales no necesitan sesión.
+- `disabled.ts` sigue rechazando servicios de datos; **no importar ni llamar a los callables financieros desde este frontend**. Las reglas existentes deniegan toda escritura cliente y las lecturas de otros UID; el servidor mantiene su autorización anterior al repositorio. Ocultar UI no es una barrera de seguridad.
+
+El emulador es infraestructura local de confianza para desarrollo, no un servidor público seguro. Su API permite crear usuarios e incluso simular identidades; un atacante con control del entorno local puede impersonar el UID permitido. La allowlist prueba el contrato de autorización, no reemplaza validación criptográfica/productiva. Los tokens del emulador no son aceptados por servicios Firebase productivos. Referencia: [conectar Authentication Emulator](https://firebase.google.com/docs/emulator-suite/connect_auth).
+
+### Sesiones y limpieza
+
+El SDK conserva oficialmente tokens de acceso/renovación en localStorage, nunca la contraseña. El SDK de app también puede crear `firebase-heartbeat-database` en IndexedDB para metadatos de versión/fecha; las pruebas inspeccionan su contenido y descartan contraseñas o datos del dominio. No existe almacenamiento de borradores, compras, fotos, inventario o lista. El formulario borra la contraseña al enviar y no la añade al contexto, URL, logs ni stores.
+
+`onIdTokenChanged` observa login/logout, cambios entre pestañas y renovaciones. La primera identidad restaurada se valida forzando renovación de token antes de mostrar pantallas. Hay revalidación al recuperar foco, visibilidad, conexión y al vencer el token; la caducidad por sí sola no dispara `onIdTokenChanged`, por eso hay temporizador explícito. La comprobación de la misma identidad con token vigente ocurre en segundo plano y conserva formularios; identidad inicial/distinta o token vencido se ocultan hasta validar. Renovación válida mantiene la sesión; token inválido, vencido o cuenta deshabilitada cierran acceso. Un error de red oculta las pantallas y limpia ejemplos; conserva solo la sesión oficial para un reintento explícito. No se promete detección instantánea de revocación mientras la ventana está inactiva. [Persistencia oficial](https://firebase.google.com/docs/auth/web/auth-state-persistence), [referencia Auth](https://firebase.google.com/docs/reference/js/auth).
+
+Logout oculta las pantallas y cambia el alcance antes de esperar al SDK; ninguna respuesta anterior puede reabrirlas. Se retiran observador, listeners de ventana/documento y temporizador al disponer el servicio; HMR dispone también el router. La sesión Auth no confirma una compra ni un gasto. La recarga conserva identidad cuando la validación funciona, pero reinicia todos los ejemplos del prototipo.
+
+### Ejecución manual
+
+Con Node 24.22.3 y Java≥21, instalar ambos lockfiles según la sección 05A. Mantener tres terminales en la raíz:
+
+```bash
+# Terminal 1: laboratorio 05A completo, sin datos reales
+npm run firebase:local:start
+```
+
+```bash
+# Terminal 2: aprovisionamiento ficticio e idempotente, solo con emuladores activos
+npm run firebase:auth:seed
+# El demo independiente sigue disponible sin iniciar sesión
+npm run dev
+```
+
+```bash
+# Terminal 3: elección explícita del acceso local, sin crear ni copiar un .env
+npm run dev:emulator
+```
+
+Abrir `http://127.0.0.1:5174/inventario`: redirige a `/acceso`. Fixture permitido: `duena@example.test`, contraseña **ficticia de laboratorio** `Solo-local-05B1!`, UID `demo-owner-05a`. Fixture rechazado: `otra@example.test`, contraseña ficticia `Otra-local-05B1!`, UID `demo-other-05b1`. Nunca reutilizar contraseñas reales ni introducir cuentas reales. El adaptador rechaza correos fuera de `@example.test` antes de transmitirlos. El runner de fixtures valida configuración, rechaza credenciales y no crea registros financieros; Admin queda exclusivamente en el script Node.
+
+`dev:emulator` fija los valores locales exactos y puerto 5174. Sin variables de modo, `dev` sigue siendo demo en 5173; un `.env` local puede cambiar esa elección explícita. Si se cambia de modo/servidor, se recarga toda la aplicación, sin mover ni reenviar datos entre modos. React no cambia a Firebase silenciosamente. Un emulador caído produce error, nunca fallback a servicios reales. Configuración no autorizada muestra un aviso y no inicia servicios.
+
+Probar credenciales incorrectas, UID ajeno, recarga, cerrar sesión, dos pestañas, desconexión/recuperación y ejemplos nuevos tras entrar otra vez. Las compras siguen en memoria y se identifican como ejemplos ajenos a la cuenta. Ctrl+C detiene los servidores; no se exportan ni publican bases de emuladores.
+
+### Pruebas automáticas
+
+Con los emuladores manuales detenidos:
+
+```bash
+npm run typecheck
+npm run build
+npm test
+npm run test:e2e
+npm run typecheck:server
+npm run test:server
+npm run test:firebase:local
+npm run test:auth:emulator
+```
+
+La suite Auth usa `firebase.local.json` validado y CLI fijado de `functions/`, proyecto demo y solo Auth/Firestore para los negativos de reglas. Prepara fixtures y arranca React emulador en 5174 y demo en 4175. Playwright bloquea cualquier destino externo y llamadas del navegador a servicios financieros. Incluye persistencia/recarga, carga inicial bloqueada con respuesta retrasada, fallo de red, renovación inválida, UID ajeno/cambio entre pestañas, altas directas por API denegadas por autorización, independencia del demo, teclado, axe y anchuras 360/390/430/768 con texto 200%. La simulación de errores de renovación no acredita revocación productiva real. Los resultados exactos y limitaciones están en [FASE_05B_1](../FASE_05B_1.md).
+
+### Proveedores posteriores: solo preparación
+
+Esta fase no decide Google frente a correo/contraseña productivos. Para un proveedor real se necesita autorización independiente, resolver DP-01/06 y recursos/costos/entornos de DP-07. Aprovisionar administrativamente la identidad y su UID durable; si después se vincula Google, usar vinculación al mismo UID en un adaptador autorizado, sin crear una cuenta por coincidencia de correo. Añadir la variante de entrada al puerto y UI de acceso; el dominio y los componentes del prototipo permanecen independientes del proveedor. No añadir configuración real a los scripts locales ni relajar sus guards para hacerlo.
+
+Antes de habilitarlo, definir recuperación, dispositivo/navegador, dominios autorizados, errores de popup/redirección, vinculación y revocación; configurar allowlist del servidor y reglas administrativamente, nunca copiando el UID demo. No hay comandos de activación ni despliegue en esta fase.
+
+**Sin registro público UI no significa bloquear altas por API.** La suite demuestra que Authentication Emulator acepta `accounts:signUp`; el UID generado sigue rechazado por la app y las reglas. Si DP-01 exige bloqueo global, evaluar después restricciones de autoservicio de Identity Platform, compatibilidad/costos y aprovisionamiento inicial, sin activarlas ahora. [Administrar autoservicio de usuarios](https://cloud.google.com/identity-platform/docs/concepts-manage-users).
+
+## Infraestructura original 05A (referencia histórica)
 
 Fecha: 22-11-2026. **Infraestructura local experimental, sin autorización productiva.** DP-01 a DP-13 siguen pendientes en los documentos originales. Se conserva el núcleo normalizado y transaccional de [04C](TRUSTED_EXECUTOR.md), no el agregado descartado de 04B. Los [contratos 04D](FINAL_CONTRACT_PROPOSAL.md) continúan siendo propuestas; no se implementaron rectificaciones, descuentos generales ni su política de persistencia.
 

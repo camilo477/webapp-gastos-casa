@@ -6,8 +6,11 @@ import { ConfirmationDialog } from '../components/ConfirmationDialog';
 import { useRouteFocus } from '../hooks/useRouteFocus';
 import { useDemo } from '../state/DemoContext';
 import { InPageLink } from '../components/InPageLink';
+import { SessionActions } from '../features/authentication/SessionPages';
+import { useSession } from '../state/SessionContext';
 
 export function AppShell(){
+  const session=useSession();
   const {getState,run}=useDemo();
   const reviewing=Boolean(useMatch('/compras/revisar')),registering=Boolean(useMatch('/compras/nueva'));
   const contextual=reviewing||registering;
@@ -23,7 +26,7 @@ export function AppShell(){
     <InPageLink className="skip-link" target="contenido">Ir al contenido</InPageLink>
     <div className={'app-shell '+(contextual?'task-shell':'')}><Header contextual={contextual}/>
       {contextual?<ContextNavigation reviewing={reviewing}/>:<BottomNavigation/>}
-      <main className="app-main" id="contenido" tabIndex={-1}><DemoNotice/><Outlet/></main>
+      <main className="app-main" id="contenido" tabIndex={-1}><SessionActions/><DemoNotice authenticatedExamples={Boolean(session)}/><Outlet/></main>
     </div>
     <ConfirmationDialog open={blocker.state==='blocked'} title="¿Descartar esta compra?" description="Hay cambios sin confirmar. Si sales, se descartará este borrador. El inventario y los gastos no han cambiado."
       confirmLabel="Descartar y salir" onCancel={()=>blocker.reset?.()} onConfirm={()=>{run({type:'discardDraft'});blocker.proceed?.();}}/>

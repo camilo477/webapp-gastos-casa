@@ -268,3 +268,6 @@ details[open] > summary .line-expand svg { transform: rotate(180deg); }
   .list-row input:checked { appearance: auto; }
   .list-row input:checked::after { content: none; }
 }
+.access-shell { max-width: 40rem; }
+.access-card { margin-bottom: 2rem; }
+.access-card p { overflow-wrap: anywhere; }

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { EMULATOR_CONFIG, readConfiguration, requireDemoConfiguration } from './configuration';
+import { EMULATOR_CONFIG, readConfiguration, requireLocalAuthentication } from './configuration';
 import { createFirebaseServices } from '../adapters/firebase/disabled';
 
 const local = {
@@ -11,7 +11,6 @@ describe('configuration fails closed without remote requests', () => {
   it('keeps demo as default even when unrelated Firebase variables exist', () => {
     expect(readConfiguration({})).toEqual({ mode: 'demo' });
     expect(readConfiguration({ VITE_FIREBASE_PROJECT_ID: 'untrusted' })).toEqual({ mode: 'demo' });
-    expect(() => requireDemoConfiguration({})).not.toThrow();
   });
   it('accepts only explicit, complete, exact loopback emulator configuration', () => {
     expect(readConfiguration(local)).toEqual(EMULATOR_CONFIG);
@@ -20,9 +19,14 @@ describe('configuration fails closed without remote requests', () => {
       expect(() => readConfiguration({ ...local, [key]: 'real-or-public' })).toThrow('INVALID_LOCAL_CONFIGURATION');
     }
   });
-  it('rejects unknown, staging and production modes, and emulator mode in the current React entry', () => {
+  it('rejects unknown, staging and production modes; Auth accepts only loopback and exact configuration', () => {
     for (const mode of ['', 'staging', 'production', 'unknown']) expect(() => readConfiguration({ VITE_APP_MODE: mode })).toThrow('DISABLED_05A');
-    expect(() => requireDemoConfiguration(local)).toThrow('NOT_CONNECTED_05A');
+    expect(readConfiguration(local).mode).toBe('emulator');
+    expect(() => requireLocalAuthentication(EMULATOR_CONFIG, '127.0.0.1')).not.toThrow();
+    expect(() => requireLocalAuthentication(EMULATOR_CONFIG, 'localhost')).not.toThrow();
+    expect(() => requireLocalAuthentication(EMULATOR_CONFIG, 'example.org')).toThrow('LOCAL_AUTHENTICATION_ONLY');
+    expect(() => requireLocalAuthentication({ ...EMULATOR_CONFIG, projectId: 'real' } as unknown as typeof EMULATOR_CONFIG, 'localhost')).toThrow('LOCAL_AUTHENTICATION_ONLY');
+    expect(() => requireLocalAuthentication({ mode: 'demo' }, 'localhost')).toThrow('LOCAL_AUTHENTICATION_ONLY');
   });
   it('cannot initialize remote adapters or send a request', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
