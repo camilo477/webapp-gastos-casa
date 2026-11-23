@@ -1,6 +1,10 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
-## Estado actual 05B-2: adaptador preparado, sin activación real
+## Validación 05B-3 en curso: falta configuración autorizada
+
+La revisión 05B-3 no encontró `.env.auth-test.local`; no se estableció ninguna conexión Auth real. Se ejecutaron las regresiones locales y se preparó una [guía de configuración y validación manual](../FASE_05B_3.md). La fase sigue abierta hasta disponer del proyecto/cuentas/proveedor aprobados y evidencia del acceso real. No completar automáticamente la aprobación ni reutilizar fixtures del emulador como configuración real.
+
+## Preparación 05B-2: adaptador preparado, sin activación real
 
 Fecha: 23-11-2026. **El asistente no ha creado proyectos, activado proveedores, registrado cuentas reales ni realizado conexiones Auth reales.** Producción y servicios de datos siguen deshabilitados. Esta sección sustituye el estado actual de la sección histórica 05B-1 inferior únicamente en cuanto a preparación de Auth. DP-01/06/07 y las demás DP siguen pendientes en sus aspectos no aprobados.
 
