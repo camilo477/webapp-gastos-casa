@@ -1,4 +1,4 @@
-import { ConfigurationError, requireTestAuthentication, type AuthTestConfiguration } from './configuration';
+import { ConfigurationError, requireTestAuthentication, type AuthTestConfiguration, type Configuration } from './configuration';
 import { CONTRACT } from '@mi-casa/inventory-contract';
 
 export const INVENTORY_READ_PROJECT = 'mi-casa-camilo-test';
@@ -6,7 +6,7 @@ export const INVENTORY_READ_CONTRACT = CONTRACT;
 export type InventoryReadConfiguration = Readonly<{
   projectId: string; databaseId: '(default)'; ownerUid: string; contract: typeof INVENTORY_READ_CONTRACT;
 }>;
-// Offline preparation only. These values are never consumed by main.tsx in 05C-2.
+// Auth-only approval does not grant inventory access. Server rules/ACL remain authoritative.
 export function prepareInventoryReadConfiguration(auth: AuthTestConfiguration, env: Readonly<Record<string, unknown>>, origin: string): InventoryReadConfiguration {
   requireTestAuthentication(auth, origin);
   if (auth.projectId !== INVENTORY_READ_PROJECT || !/^http:\/\/(localhost|127\.0\.0\.1):5175$/.test(origin) ||
@@ -17,8 +17,16 @@ export function prepareInventoryReadConfiguration(auth: AuthTestConfiguration, e
   }
   return Object.freeze({ projectId: auth.projectId, databaseId: '(default)', ownerUid: auth.ownerUid, contract: INVENTORY_READ_CONTRACT });
 }
-export function requireRealInventoryReadRelease(): never {
-  // Cannot be unlocked by .env, owner-approved Auth alone, a test flag or browser storage.
-  // A later authorized phase must verify deployed rules/ACL and integrate a read-only UI first.
-  throw new ConfigurationError('REAL_INVENTORY_READ_DISABLED_05C2');
+export function requireRealInventoryReadRelease(env: Readonly<Record<string, unknown>> = {}): void {
+  // 05C-6: owner confirmed published rules and ACL. Explicit local selection is still required.
+  // This gate controls composition; it cannot substitute the server's authorization.
+  if (env.VITE_FIRESTORE_READ_ENABLED !== 'true') throw new ConfigurationError('REAL_INVENTORY_READ_NOT_ENABLED');
+}
+export function inventoryReadRequested(configuration: Configuration, env: Readonly<Record<string, unknown>>, origin: string): boolean {
+  const enabled = env.VITE_FIRESTORE_READ_ENABLED;
+  if (enabled === undefined || enabled === 'false') return false;
+  requireRealInventoryReadRelease(env);
+  if (configuration.mode !== 'auth-test') throw new ConfigurationError('REAL_INVENTORY_READ_AUTH_TEST_ONLY');
+  prepareInventoryReadConfiguration(configuration, env, origin);
+  return true;
 }

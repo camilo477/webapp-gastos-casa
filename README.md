@@ -4,6 +4,8 @@ Prototipo React de **Fase 03B**, auditado y ajustado en **Fase 03C**, con invent
 
 **Modo demostración:** todos los cambios se pierden al recargar. No hay respaldo en la nube ni fotografías reales. El botón Restablecer datos de ejemplo permite reiniciar la sesión, previa confirmación.
 
+**Estado 05C-6:** también existe lectura real de inventario opt-in con `npm run dev:inventory-read`, reglas/ACL confirmadas por el propietario y recorrido real probado. No permite modificar productos. Demo continúa siendo el modo predeterminado; [alcance y evidencia actuales](docs/FASE_05C_6.md). Las secciones de fases anteriores conservan su contexto histórico.
+
 ## Ejecutar localmente
 
 Requiere Node.js 20.19+ de la rama 20, 22.12+ de la rama 22, o 24+. Prototipo verificado con Node 20.19.5 y 24.22.3, npm 11.6.4. Para el nuevo ejecutor local se requiere Node 24; Node 20 queda como entorno histórico, no runtime productivo futuro.
@@ -72,9 +74,11 @@ Sin cambios de aplicación, Authentication o reglas: demo y emuladores continúa
 
 La **Fase 05C-5** registra la confirmación visual del propietario de Firestore Standard/Native, (default), us-east1, vacío, Spark y deny-all, sin verificación administrativa independiente de Codex. Añade pruebas adversariales y un [procedimiento de verificación y futura activación](docs/architecture/FIRESTORE_READ_RELEASE_RUNBOOK.md); no publica reglas/ACL ni conecta React a Firestore real. [Resultados y límites](docs/FASE_05C_5.md). No crear otra base ni repetir los pasos históricos de creación.
 
-## Activación controlada — Fase 05C-6 pendiente
+## Lectura autorizada — Fase 05C-6
 
-La **Fase 05C-6** tiene autorización para publicación controlada de reglas, ACL y lectura real, pero **aún está pendiente de verificar la publicación manual de reglas**. ACL y activación React siguen detenidas; no se declara habilitada la lectura. [Estado actual e instrucciones](docs/FASE_05C_6.md). Esta autorización no incluye Blaze, despliegues, escrituras de productos/finanzas o datos de ejemplo.
+El propietario confirmó la publicación de las reglas revisadas y la ACL de mi-casa-camilo-test/(default). `npm run dev:inventory-read` selecciona explícitamente el lector de solo lectura, reutiliza Auth y carga la aprobación/base/contrato desde `.env.inventory-read.local` ignorado; no modifica `.env.auth-test.local`. `npm run dev:auth-test` fuerza Auth-only aunque sobren flags de lectura. Demo y emuladores conservan sus modos. Sin aprobación/configuración completa no se conecta; nunca sustituye un error por productos demo.
+
+La prueba efectiva contra Firestore real pasó con ingreso manual de la cuenta: vacío, recarga, desconexión/recuperación, logout y protección de rutas, sin escrituras o Functions. [Estado y comprobaciones 05C-6](docs/FASE_05C_6.md). Las pruebas simuladas se identifican como tales: `npm run test:inventory:read:browser` comprueba lectura y Auth-only sin permitir solicitudes externas. No hay botones/capacidad de modificación en el inventario leído. No se autorizan Blaze, despliegues, escritura de productos/finanzas o datos de ejemplo.
 
 ## Rutas
 

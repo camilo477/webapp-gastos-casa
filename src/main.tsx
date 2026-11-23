@@ -4,13 +4,15 @@ import { createBrowserRouter } from 'react-router';
 import { App, createAppRoutes } from './app/App';
 import { readConfiguration, requireLocalAuthentication, requireTestAuthentication } from './application/configuration';
 import type { SessionPort } from './application/ports';
-import { inventoryProfile, type InventoryService } from './application/inventory-candidate';
+import { inventoryProfile, type InventorySource } from './application/inventory-candidate';
+import { inventoryReadRequested } from './application/inventory-read-configuration';
 import './styles/app.css';
 async function start() {
   const configuration = readConfiguration(import.meta.env);
   const profile=inventoryProfile(configuration,import.meta.env);
+  const realInventory=inventoryReadRequested(configuration,import.meta.env,window.location.origin);
   let session: SessionPort | undefined;
-  let inventory: InventoryService | undefined;
+  let inventory: InventorySource | undefined;
   if (configuration.mode === 'emulator') {
     requireLocalAuthentication(configuration, window.location.hostname);
     const { createEmulatorSession } = await import('./adapters/firebase/authentication');
@@ -26,6 +28,12 @@ async function start() {
     requireTestAuthentication(configuration, window.location.origin);
     const { createAuthTestSession } = await import('./adapters/firebase/auth-test');
     session = createAuthTestSession(configuration, window.location.origin);
+    if(realInventory){
+      try{
+        const {createPreparedInventoryRead}=await import('./adapters/firebase/inventory-read-test');
+        inventory=createPreparedInventoryRead(configuration,import.meta.env,window.location.origin);
+      }catch(error){await session.dispose();throw error;}
+    }
   }
   const router = createBrowserRouter(createAppRoutes(configuration.mode !== 'demo'));
   createRoot(document.getElementById('root')!).render(<StrictMode><App router={router} session={session} inventory={inventory}/></StrictMode>);

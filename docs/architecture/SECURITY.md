@@ -1,6 +1,10 @@
 # Seguridad — estado vigente y antecedentes de diseño
 
-## Estado vigente — 05C-5, 23-11-2026
+## Estado vigente — 05C-6, 23-11-2026
+
+El propietario confirmó publicación del artefacto de lectura y ACL con esquema/tipos/UID de la cuenta aprobada, sin compartir el valor personal. El cliente selecciona el lector solo de forma explícita, con aprobación por proyecto/base/origen/contrato; Auth-only conserva el bloqueo por defecto. Las escrituras de productos/ACL/finanzas siguen cerradas para clientes. Se reutiliza Auth y se limpian vistas por sesión, sin crear identidades o proveedores. Las advertencias Firestore se silencian antes de crear el lector para no imprimir rutas/UID; los errores de UI se traducen. La prueba real de acceso se completó con ingreso manual, consulta vacía, recarga, desconexión/recuperación y logout/ruta protegida, con cero intentos de escritura/Functions/otro proyecto. Unitarias, SDK/emuladores y mocks se identifican por separado. [Informe y límites](../FASE_05C_6.md).
+
+## Estado documentado — 05C-5, 23-11-2026
 
 El propietario confirmó visualmente mi-casa-camilo-test, Firestore (default) vacío, Spark y reglas activas deny-all; después confirmó Standard, Firestore Native, us-east1, backups programados deshabilitados y cifrado administrado por Google. Es evidencia aportada por él, **no verificación administrativa independiente de Codex**. El lector real permanece bloqueado; no se publicaron reglas personalizadas, crearon ACL/datos o desplegaron servicios.
 

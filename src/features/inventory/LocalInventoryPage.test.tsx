@@ -24,7 +24,7 @@ describe('local inventory screen',()=>{
     const service:InventoryReadPort={page:vi.fn().mockResolvedValueOnce({items:[],nextCursor:null}).mockResolvedValueOnce({items:[product],nextCursor:null}).mockRejectedValueOnce(new InventoryReadError('access','Esta cuenta no tiene permiso para consultar el inventario.')),byId:vi.fn(),dispose:vi.fn()};
     render(<LocalInventoryPage service={service}/>);
     expect(screen.getByText('Cargando productos…')).toBeVisible();
-    await screen.findByRole('heading',{name:'No hay productos para mostrar'});
+    await screen.findByRole('heading',{name:'Todavía no tienes productos registrados'});
     expect(screen.queryByText(product.name)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button',{name:'Actualizar productos'}));
     await screen.findByRole('heading',{name:product.name});

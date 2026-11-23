@@ -11,6 +11,7 @@ export interface CandidateReadPort extends InventoryReadPort {
 }
 export interface CandidateInventoryPort extends CandidateReadPort { mutate(command:Command):Promise<void> }
 export type InventoryService = LocalInventoryPort | CandidateInventoryPort;
+export type InventorySource = InventoryService | InventoryReadPort;
 export function isCandidate(service:object):service is CandidateReadPort { return 'contract'in service&&service.contract===CONTRACT; }
 export function isCandidateWriter(service:InventoryService):service is CandidateInventoryPort {return isCandidate(service);}
 export function candidateView(p:Product):InventoryProduct {

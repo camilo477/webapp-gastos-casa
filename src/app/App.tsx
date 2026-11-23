@@ -14,7 +14,7 @@ import { AppShell } from './AppShell';
 import type { SessionPort } from '../application/ports';
 import { SessionProvider, useSession } from '../state/SessionContext';
 import { LoginPage, RequireSession } from '../features/authentication/SessionPages';
-import type { InventoryService } from '../application/inventory-candidate';
+import type { InventorySource } from '../application/inventory-candidate';
 import { InventoryProvider } from '../state/InventoryContext';
 
 function NotFoundPage(){return <><PageHeading title="No encontramos esta página"/><EmptyState title="Volvamos a casa" action={<Link className="btn" to="/">Ir a Inicio</Link>}>Puedes seguir desde la pantalla principal.</EmptyState></>;}
@@ -30,11 +30,11 @@ export function createAppRoutes(authenticationRequired = false): RouteObject[] {
   ];
 }
 export const appRoutes = createAppRoutes();
-function ExampleScope({ initialState, inventory, children }: { initialState?: DomainState; inventory?: InventoryService; children: ReactNode }) {
+function ExampleScope({ initialState, inventory, children }: { initialState?: DomainState; inventory?: InventorySource; children: ReactNode }) {
   const session = useSession();
   return <DemoProvider key={session?.state.scope ?? 'demo'} initialState={initialState}>{inventory ? <InventoryProvider service={inventory}>{children}</InventoryProvider> : children}</DemoProvider>;
 }
-export function App({router,initialState,session,inventory}:{router:ReturnType<typeof createBrowserRouter>;initialState?:DomainState;session?:SessionPort;inventory?:InventoryService}){
+export function App({router,initialState,session,inventory}:{router:ReturnType<typeof createBrowserRouter>;initialState?:DomainState;session?:SessionPort;inventory?:InventorySource}){
   const content = <ExampleScope initialState={initialState} inventory={inventory}><RouterProvider router={router}/></ExampleScope>;
   return session ? <SessionProvider service={session}>{content}</SessionProvider> : content;
 }

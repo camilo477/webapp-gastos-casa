@@ -1,5 +1,7 @@
 # Inventario — aprobaciones vigentes y propuestas históricas
 
+**Seguimiento operativo 05C-6:** el contrato de inventario no cambia. El propietario autorizó y confirmó reglas de lectura/ACL en el proyecto de pruebas, y se implementó/probó lectura real opt-in con Auth, sin escrituras o Functions. [Evidencia actual](../FASE_05C_6.md). Esta autorización operativa es posterior a las restricciones históricas inferiores y no aprueba migración o políticas financieras.
+
 **Actualización 05C-4, 23-11-2026:** el propietario aprobó expresamente DP-03/07/08/10 para el inventario del [contrato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md), revisión inventory-candidate-v1 / schemaVersion=2. El [registro de aprobación](OWNER_DECISION_REVIEW.md) distingue alcances y exclusiones.
 
 Quedan aprobados control exacto/aproximado, unidades enteras y kg/L hasta tres decimales, g/kg y ml/L explícitos, contenido confirmado de envases, aperturas sin gasto, no negativos, los tres estados y ausencia de umbrales automáticos; cambios de base/control con historial exigen migración específica. También los siete IDs/etiquetas del catálogo, Sin clasificar por defecto y distinto de Otros, sin administración adicional y preservando etiquetas históricas; IDs estables, sugerencias por nombre/presentación y decisión humana, sin fusión automática ni efectos duplicados por reintentos o garantía de deduplicación perfecta.

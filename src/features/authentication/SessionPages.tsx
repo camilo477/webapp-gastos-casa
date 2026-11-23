@@ -27,6 +27,7 @@ export function RequireSession() {
 }
 export function LoginPage() {
   const session = useSession(), location = useLocation();
+  const inventory = useLocalInventory(), reading = inventory !== null && !('mutate' in inventory.service);
   const [error, setError] = useState(''), [busy, setBusy] = useState(false);
   const submitting = useRef(false), errorRef = useRef<HTMLParagraphElement>(null);
   if (!session) return <Navigate to="/" replace/>;
@@ -63,7 +64,7 @@ export function LoginPage() {
     } finally { request.password = ''; submitting.current = false; setBusy(false); }
   }
   return <AccessLayout>
-    <PageHeading title="Bienvenida a Mi Casa">Ingresa para probar el acceso a tus compras y productos.</PageHeading>
+    <PageHeading title="Bienvenida a Mi Casa">{reading?'Ingresa para consultar los productos de tu inventario.':'Ingresa para probar el acceso a tus compras y productos.'}</PageHeading>
     <section className="panel stack access-card" aria-label="Inicio de sesión">
       <p className="muted">{local ? 'Prueba local de acceso. Usa únicamente una cuenta ficticia.' : 'Prueba de acceso autorizada. Ingresa con la cuenta acordada para esta prueba.'}</p>
       {message && <p ref={errorRef} role="alert" tabIndex={-1} className="field-error">{message}</p>}
@@ -74,7 +75,7 @@ export function LoginPage() {
         <Button type="submit" className="btn-block" disabled={busy}>{busy ? 'Ingresando…' : 'Ingresar'}</Button>
       </form>}
       {session.state.status === 'error' && <Button variant="secondary" onClick={() => { setError(''); void session.service.recheck(); }}>Volver a comprobar la sesión</Button>}
-      <p className="muted small">Este acceso no guarda compras ni productos en la nube. El modo demostración se puede usar sin una cuenta.</p>
+      <p className="muted small">{reading?'Este acceso permite consultar tu inventario. Todavía no permite guardar cambios. El modo demostración funciona por separado.':'Este acceso no guarda compras ni productos en la nube. El modo demostración se puede usar sin una cuenta.'}</p>
     </section>
   </AccessLayout>;
 }
@@ -84,9 +85,10 @@ export function SessionActions() {
   const inventory = useLocalInventory(), location = useLocation();
   const [error, setError] = useState('');
   if (!session) return null;
-  const label = session.service.options.mode === 'emulator' ? 'Prueba local de acceso' : 'Prueba de acceso autorizada';
+  const reading = inventory !== null && !('mutate' in inventory.service) && location.pathname.replace(/\/$/,'') === '/inventario';
+  const label = reading?'Consulta de inventario autorizada':session.service.options.mode === 'emulator' ? 'Prueba local de acceso' : 'Prueba de acceso autorizada';
   return <aside className="demo-mode" aria-label={label}>
-    <p><strong>{label}.</strong> {inventory && location.pathname === '/inventario' ? 'Al salir, el inventario desaparece de esta pantalla. Los cambios confirmados siguen en el emulador mientras conserve sus datos.' : 'Los datos de ejemplo no pertenecen a esta cuenta. Al salir se descartan los cambios de esta sesión.'}</p>
+    <p><strong>{label}.</strong> {reading?'Estos productos se consultan en tu cuenta. No se pueden guardar cambios desde esta pantalla. Al salir, dejan de mostrarse aquí.':inventory && location.pathname === '/inventario' ? 'Al salir, el inventario desaparece de esta pantalla. Los cambios confirmados siguen en el emulador mientras conserve sus datos.' : 'Los datos de ejemplo no pertenecen a esta cuenta. Al salir se descartan los cambios de esta sesión.'}</p>
     <Button variant="secondary" className="btn-small" onClick={() => { setError(''); void session.service.signOut().catch(cause => {
       setError(cause instanceof AuthenticationError ? cause.message : authenticationMessage(null));
     }); }}>Cerrar sesión</Button>
