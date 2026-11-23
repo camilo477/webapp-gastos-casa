@@ -72,6 +72,10 @@ Sin cambios de aplicación, Authentication o reglas: demo y emuladores continúa
 
 La **Fase 05C-5** registra la confirmación visual del propietario de Firestore Standard/Native, (default), us-east1, vacío, Spark y deny-all, sin verificación administrativa independiente de Codex. Añade pruebas adversariales y un [procedimiento de verificación y futura activación](docs/architecture/FIRESTORE_READ_RELEASE_RUNBOOK.md); no publica reglas/ACL ni conecta React a Firestore real. [Resultados y límites](docs/FASE_05C_5.md). No crear otra base ni repetir los pasos históricos de creación.
 
+## Activación controlada — Fase 05C-6 pendiente
+
+La **Fase 05C-6** tiene autorización para publicación controlada de reglas, ACL y lectura real, pero **aún está pendiente de verificar la publicación manual de reglas**. ACL y activación React siguen detenidas; no se declara habilitada la lectura. [Estado actual e instrucciones](docs/FASE_05C_6.md). Esta autorización no incluye Blaze, despliegues, escrituras de productos/finanzas o datos de ejemplo.
+
 ## Rutas
 
 | Ruta | Pantalla |

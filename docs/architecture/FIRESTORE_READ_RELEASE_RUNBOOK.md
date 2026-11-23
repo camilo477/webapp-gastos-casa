@@ -1,6 +1,6 @@
 # Lectura de inventario real — procedimiento de verificación y activación futura
 
-Preparado en 05C-5, 23-11-2026. **Solo los pasos de consulta/verificación están autorizados ahora.** Publicar reglas, crear ACL, modificar datos o conectar React requieren una fase y autorización posteriores. No ejecutar este documento entero como una receta autorizada.
+Preparado en 05C-5, 23-11-2026. **Actualización 05C-6:** el propietario ya autorizó publicar únicamente las reglas revisadas en mi-casa-camilo-test/(default), crear solo la ACL administrativa, activar lectura y probarla. Se mantienen Spark y todas las exclusiones de datos/escrituras/Blaze/despliegues. La ejecución depende de comprobar en orden reglas publicadas y ACL; sin evidencia se detienen las operaciones siguientes. Ver [estado real 05C-6](../FASE_05C_6.md). Las secciones tituladas «no ejecutar en 05C-5» conservan el alcance histórico y no omiten las condiciones vigentes de verificación. No ejecutar este documento entero sin comprobarlas.
 
 ## 1. Verificar sin cambiar recursos
 

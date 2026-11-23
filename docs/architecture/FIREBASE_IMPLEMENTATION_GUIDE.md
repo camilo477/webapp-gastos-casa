@@ -1,5 +1,9 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
+## Activación controlada autorizada — Fase 05C-6
+
+Se autorizó únicamente reglas de lectura revisadas, ACL administrativa y lectura React en mi-casa-camilo-test/(default), manteniendo Spark. No hay sesión CLI administrativa utilizable: se solicitó publicación manual desde Console y copia de la fuente activa para comparar. **La publicación aún no se declara verificada; ACL y conexión siguen detenidas y el guard permanece cerrado.** [Estado y pasos manuales](../FASE_05C_6.md). No crear datos/usuarios, abrir escrituras, activar Blaze o desplegar Functions/Hosting. Las secciones siguientes conservan las autorizaciones y evidencias históricas de cada fase.
+
 ## Verificación y preparación final — Fase 05C-5
 
 El propietario confirmó visualmente la base (default), vacía, Spark y deny-all; después Standard/Native/us-east1, backups programados deshabilitados y cifrado administrado por Google. No se obtuvo verificación administrativa independiente ni se conectó el inventario. El [runbook de lectura](FIRESTORE_READ_RELEASE_RUNBOOK.md) separa comprobación de metadatos permitida de publicación/ACL/activación que requieren autorización posterior. No ejecutar de nuevo la creación de base de antecedentes anteriores.

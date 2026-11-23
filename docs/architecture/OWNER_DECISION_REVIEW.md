@@ -17,6 +17,8 @@
 
 **Seguimiento 05C-5, 23-11-2026:** el propietario confirmó visualmente en Console la creación de (default), vacía, Spark, deny-all, Standard/Native/us-east1, backups programados deshabilitados y cifrado administrado por Google. Se registra como evidencia aportada por él, no comprobación administrativa independiente ni permiso de conexión. No se publican reglas personalizadas, crean ACL o datos, activan Blaze o despliegan servicios. [Informe y verificaciones](../FASE_05C_5.md).
 
+**Autorización operativa 05C-6, 23-11-2026:** publicar exclusivamente el artefacto de lectura revisado en mi-casa-camilo-test/(default), crear solo `_access/inventory` con el UID Auth ya aprobado, conectar el lector de productos y probar lecturas. No autoriza ninguna otra infraestructura, dato de ejemplo, producto, compra/gasto, escritura directa, Blaze, Functions/Hosting o nueva identidad. No aprueba otras DP por extensión. La ACL depende de reglas activas verificadas y la conexión de ambas verificaciones; [estado de ejecución](../FASE_05C_6.md). Tener permiso no equivale a haber publicado/configurado correctamente.
+
 ## Antecedente histórico — revisión 04D
 
 Lo siguiente conserva las recomendaciones y confirmaciones solicitadas el 22-11-2026, **no el estado vigente de los cuatro alcances aprobados arriba**. Las preferencias recibidas en 04D no fueron entonces aprobación de sus políticas detalladas.
