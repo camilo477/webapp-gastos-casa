@@ -6,7 +6,7 @@ Prototipo React de **Fase 03B**, auditado y ajustado en **Fase 03C**, con invent
 
 ## Ejecutar localmente
 
-Requiere Node.js 20.19+ de la rama 20, 22.12+ de la rama 22, o 24+. Verificado con Node 20.19.5 y npm 11.6.4.
+Requiere Node.js 20.19+ de la rama 20, 22.12+ de la rama 22, o 24+. Prototipo verificado con Node 20.19.5 y 24.22.3, npm 11.6.4. Para el nuevo ejecutor local se requiere Node 24; Node 20 queda como entorno histórico, no runtime productivo futuro.
 
 ```bash
 git clone https://github.com/camilo477/webapp-gastos-casa.git mi-casa
@@ -29,7 +29,7 @@ Abrir `http://127.0.0.1:5173` o el puerto que anuncie Vite. Si las dependencias 
 - Mi lista: crear, añadir, cambiar cantidades, marcar/desmarcar, quitar y finalizar. Marcar no cambia inventario ni dinero.
 - Advertencia al abandonar un borrador con cambios, incluido Atrás dentro de la aplicación. No se recuperan borradores después de recargar.
 
-No hay Firebase, autenticación, OCR, servicios externos, persistencia, service worker ni despliegue. Las operaciones son locales y sincrónicas; su comportamiento no demuestra transacciones ni sincronización remotas.
+El prototipo React no está conectado a Firebase, autenticación, OCR, servicios externos, persistencia, service worker ni despliegue. Sus operaciones son locales y sincrónicas; su comportamiento no demuestra transacciones ni sincronización remotas. Los emuladores y ejecutores aislados se prueban por separado.
 
 ## Rutas
 
@@ -101,6 +101,19 @@ Playwright inicia y detiene un servidor en 4173; no ejecutar otro servidor en es
 
 Las pruebas cubren 320/360/390/430/768/1280 px con raíz tipográfica al 100 % y 200 %, formularios abiertos a 360/390/430/768 px, escritorio a 1440 px y recorridos de negocio. Se comprueban además espaciado personalizado, movimiento reducido y reglas automatizadas de accesibilidad. Esta simulación de texto ampliado no sustituye zoom real ni pruebas nativas de Android/iPhone o lectores de pantalla; el intento de zoom por teclado no surtió efecto en Chromium headless.
 
+## Ejecutor local 05A
+
+Con Node 24.22.3 y JDK≥21, desde la raíz:
+
+```bash
+npm --prefix functions ci
+npm run typecheck:server
+npm run test:server
+npm run test:firebase:local
+```
+
+`npm run firebase:local:start` inicia Auth, Firestore y Functions en loopback; Ctrl+C los detiene. Solo `demo-mi-casa-05a`, sin credenciales ni recursos reales. React sigue en demo y rechaza modos remotos; no hay fallback a producción. Los contratos del ejecutor siguen siendo experimentales. [Guía y auditoría](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md).
+
 ## Documentación y límites
 
 - [Auditoría, correcciones y limitaciones de Fase 03C](docs/FASE_03C.md).
@@ -115,6 +128,7 @@ Las pruebas cubren 320/360/390/430/768/1280 px con raíz tipográfica al 100 % y
 - [Fase 04B: laboratorio Firebase y resultado negativo de viabilidad](docs/FASE_04B.md). Pruebas aisladas, reglas reales y límites medidos; [dictamen y alternativas](docs/architecture/FIREBASE_FEASIBILITY.md). No conecta el prototipo a Firebase.
 - [Fase 04C: ejecutor confiable en emuladores](docs/FASE_04C.md). Resultado local positivo con Auth, Functions y Firestore; [modelo, garantías y límites](docs/architecture/TRUSTED_EXECUTOR.md). Sin persistencia productiva ni despliegues.
 - [Fase 04D: propuestas de contratos e integración](docs/FASE_04D.md). [Decisiones para revisión del propietario](docs/architecture/OWNER_DECISION_REVIEW.md), rectificaciones y persistencia propuestas; ninguna DP aprobada automáticamente ni integración real iniciada.
+- [Fase 05A: infraestructura técnica local](docs/FASE_05A.md). [Guía de instalación y seguridad](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md), [paquete servidor](functions/README.md) con Node 24 y emuladores `demo-mi-casa-05a`. React conserva demostración; sin producción ni decisiones DP aprobadas.
 
 COP enteros; cantidades con hasta tres decimales; conversiones únicamente kg/g y L/ml. El redondeo, las categorías de ejemplo y el estado propuesto al reponer son supuestos documentados del prototipo. No hay descuentos generales/prorrateos, cambios de control o unidad de un producto existente ni correcciones de compras confirmadas.
 

@@ -16,6 +16,7 @@ build/
 .parcel-cache/
 .turbo/
 *.tsbuildinfo
+/functions/lib/
 
 # Resultados generados de pruebas (los iconos/recursos de public/ sí se versionan)
 coverage/

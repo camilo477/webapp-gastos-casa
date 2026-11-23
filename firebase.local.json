@@ -1,0 +1,15 @@
+{
+  "functions": [{ "source": "functions", "codebase": "mi-casa-local-05a", "runtime": "nodejs24" }],
+  "firestore": { "rules": "functions/firestore.rules", "indexes": "functions/firestore.indexes.json" },
+  "emulators": {
+    "auth": { "host": "127.0.0.1", "port": 9299 },
+    "firestore": { "host": "127.0.0.1", "port": 8386, "websocketPort": 9350 },
+    "functions": { "host": "127.0.0.1", "port": 5205 },
+    "hub": { "host": "127.0.0.1", "port": 4406 },
+    "logging": { "host": "127.0.0.1", "port": 4506 },
+    "eventarc": { "host": "127.0.0.1", "port": 9400 },
+    "tasks": { "host": "127.0.0.1", "port": 9500 },
+    "ui": { "enabled": false },
+    "singleProjectMode": true
+  }
+}
