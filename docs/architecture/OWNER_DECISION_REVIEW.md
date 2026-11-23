@@ -1,6 +1,23 @@
-# DP-01 a DP-13 — Revisión del propietario, Fase 04D
+# DP-01 a DP-13 — Registro de decisiones del propietario
 
-**Propuesta para confirmar; ninguna fila cambia el estado de aprobación de los documentos originales.** Fecha: 22-11-2026. Esta fase autoriza análisis, documentación y regresión, no implementación. Las preferencias recibidas orientan estas recomendaciones; no se registran como aprobación de sus políticas detalladas.
+## Aprobaciones vigentes de inventario — 05C-4
+
+**Aprobación expresa del propietario, 23 de noviembre de 2026**, recibida en la instrucción de Fase 05C-4. Se aprueban exclusivamente los alcances siguientes de DP-03/07/08/10 y el contrato `inventory-candidate-v1`, `schemaVersion:2`. El identificador conserva la palabra candidate por compatibilidad; ya no implica que estas reglas funcionales sigan pendientes. No se aprueba en bloque la propuesta financiera 04D ni todo parámetro técnico del laboratorio.
+
+| DP | Alcance aprobado | Aspectos que siguen pendientes o excluidos |
+| --- | --- | --- |
+| **DP-03 — Inventario** | Control exacto y aproximado; unidades individuales enteras; kg/L hasta tres decimales; conversiones explícitas g/kg y ml/L; envases con contenido confirmado, sin inferencias por nombre; aperturas sin gasto; saldos nunca negativos; Hay suficiente/Queda poco/Agotado; sin umbrales automáticos. Cambiar base/control con historial exige migración específica. | Máximos técnicos todavía experimentales y diseño/aprobación de migraciones. No se autoriza implementar reposición automática ni compras financieras. |
+| **DP-07 — Arquitectura de inventario** | Firestore Standard/Native, documentos independientes por producto, base `(default)`, región `us-east1`, proyecto `mi-casa-camilo-test`, Spark en esta etapa; esquema 2 consolidado; Auth + Security Rules para lecturas; ejecutor confiable y Cloud Functions como mecanismo futuro de escritura; demo independiente. Incluye la versión única de registro del contrato consolidado. | Límites económicos definitivos, parámetros técnicos experimentales, migración antigua y adaptación financiera. No incluye Blaze, Functions/Hosting desplegados, lectura real habilitada o escrituras financieras. |
+| **DP-08 — Categorías de inventario** | food: Alimentos; household-care: Aseo del hogar; personal-hygiene: Higiene personal; pharmacy: Farmacia; pets: Mascotas; other: Otros; unclassified: Sin clasificar. Sin clasificar por defecto si no se eligió; distinto de Otros. Sin pantalla adicional de administración; conservar etiquetas históricas cuando corresponda. | Mapeos de categorías antiguas, modificaciones futuras del catálogo y políticas de establecimientos/clasificación financiera no cubiertas por esta aprobación. |
+| **DP-10 — Productos duplicados** | IDs estables independientes del nombre; sugerencias por nombre/presentación y confirmación humana de dudas; nunca fusión automática; artículos similares con presentaciones distintas permitidos; mismo identificador de operación no repite efectos; sin promesa de deduplicación semántica perfecta. | Criterios técnicos medibles pueden ajustarse con nuevas pruebas sin cambiar estas reglas. No se aprueban fusión asistida, alias aprendidos o deduplicación de recibos completos. |
+
+**Autorización separada:** el propietario puede crear manualmente una única base Firestore con la configuración anterior y seguridad inicial de producción **deny-all**. Esta autorización no prueba que exista ni autoriza a Codex a crear recursos. No se autorizan reglas personalizadas, ACL real, datos de ejemplo, conexión del lector, escrituras remotas o despliegues. La evidencia remota y su procedencia se registran en [FASE_05C_4](../FASE_05C_4.md).
+
+**Sin nueva aprobación:** DP-01, DP-02, DP-04, DP-05, DP-06, DP-09, DP-11, DP-12 y DP-13 conservan sus aspectos pendientes. Aprobar precisión física no aprueba redondeo monetario; elegir arquitectura de inventario no aprueba contratos financieros, OCR o persistencia de borradores.
+
+## Antecedente histórico — revisión 04D
+
+Lo siguiente conserva las recomendaciones y confirmaciones solicitadas el 22-11-2026, **no el estado vigente de los cuatro alcances aprobados arriba**. Las preferencias recibidas en 04D no fueron entonces aprobación de sus políticas detalladas.
 
 ## Estados y alcance conservado
 

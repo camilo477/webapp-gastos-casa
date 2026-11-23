@@ -1,6 +1,6 @@
 # Mi Casa — Reglas de negocio
 
-Estado: fase 1. Reglas para revisión funcional, sin implementación ni esquema definitivo de Firestore.
+Reglas base de fase 1, actualizadas el 23-11-2026 en 05C-4: inventario aprobado en el [alcance DP-03/07/08/10](architecture/OWNER_DECISION_REVIEW.md), contrato inventory-candidate-v1/schemaVersion 2. Las políticas financieras y demás pendientes no quedan aprobadas. No se habilita conexión real.
 
 ## 1. Convenciones y conceptos
 
@@ -107,11 +107,11 @@ Los gastos por servicios u otros conceptos sin producto físico no crean existen
 
 El nombre visible no es un identificador único. Nombres parecidos pueden describir presentaciones diferentes; el mismo producto puede aparecer abreviado en distintos recibos. La usuaria puede elegir una coincidencia o confirmar que se trata de otro artículo.
 
-No se fusionan productos ni se cambia su presentación basándose únicamente en una similitud de texto. La forma de agrupar distintas presentaciones bajo una identidad común debe acordarse en DP-03/DP-10.
+DP-10 aprobado: identificadores estables independientes del nombre; sugerencias por nombre y presentación con decisión humana en dudas. Artículos similares con presentaciones diferentes pueden conservar IDs distintos. Nunca se fusionan automáticamente, ni se repiten efectos al reintentar el mismo identificador de operación. No se promete deduplicación semántica perfecta; parámetros técnicos se ajustan con nuevas pruebas. No se aprueba agrupar/fusionar identidades con historial.
 
-### RB-PR-03 — Categorías (O/P)
+### RB-PR-03 — Categorías (O; inventario aprobado en DP-08)
 
-Los productos tienen categoría y los gastos se pueden consultar por ella. El catálogo inicial, su edición y la opción «Sin clasificar» quedan propuestos en DP-08. No se inventa una clasificación segura donde el dato es desconocido.
+DP-08 aprueba food: Alimentos; household-care: Aseo del hogar; personal-hygiene: Higiene personal; pharmacy: Farmacia; pets: Mascotas; other: Otros; unclassified: Sin clasificar. Si no se elige categoría, usar Sin clasificar; Otros es una elección distinta. Sin pantalla adicional de administración y conservando etiquetas históricas cuando corresponda. No se mapean categorías antiguas automáticamente ni se aprueban políticas financieras por este catálogo.
 
 Para que el informe por categorías sea conciliable, cada importe se asigna una sola vez; la política de descuentos y cargos se explica en RB-IM-03 y RB-GA-02.
 
@@ -119,7 +119,7 @@ Para que el informe por categorías sea conciliable, cada importe se asigna una 
 
 Una compra guarda una descripción estructurada suficiente para entender qué se adquirió, cantidad, presentación e importes. Renombrar o reclasificar el producto actual no debe destruir ese contexto.
 
-Se propone conservar la categoría de cada línea en el momento de la compra y usarla en informes históricos, DP-08/DP-12. Esto evita que editar el catálogo cambie informes pasados sin una acción explícita. La política alternativa de reclasificación histórica requeriría aprobación.
+DP-08 aprueba conservar las etiquetas históricas cuando corresponda: cambiar el catálogo no reescribe el contexto anterior. La representación de snapshots de compras y su interpretación en informes siguen ligadas a DP-12 y al contrato financiero pendiente; no se aprueba una reclasificación histórica automática.
 
 ## 4. Cantidades, unidades y presentaciones
 
@@ -129,23 +129,23 @@ El inventario exacto identifica magnitud y unidad: por ejemplo unidades, gramos 
 
 La cantidad comercial del recibo y el contenido de un empaque son datos distintos. Que el nombre diga «leche» no permite deducir litros ni cantidad de envases.
 
-### RB-CA-02 — Conversiones explícitas (D/P)
+### RB-CA-02 — Conversiones explícitas (D; aprobado en DP-03)
 
-Solo se convierte entre unidades compatibles y con factor conocido. Propuesta DP-03: una unidad base por producto y conversiones normalizadas, como 1 kg = 1.000 g o 1 L = 1.000 ml. No se convierten peso y volumen sin información adicional ni se infiere densidad.
+Solo se convierte entre unidades compatibles y con factor conocido: g/kg y ml/L explícitos, 1 kg = 1.000 g y 1 L = 1.000 ml. DP-03 aprueba una base por producto y envases con contenido confirmado. No se convierten masa y volumen ni se infiere contenido o densidad por el nombre.
 
-Ejemplo condicionado a esa política: saldo de 500 ml más 2 botellas confirmadas de 1 L produce 2.500 ml. Si el contenido de la botella es desconocido, hay que resolverlo, elegir una unidad de conteo compatible o revisar el producto; no asignar 1 L por defecto.
+Ejemplo de esa política aprobada: saldo de 500 ml más 2 botellas confirmadas de 1 L produce 2.500 ml. Si el contenido de la botella es desconocido, hay que resolverlo, elegir una unidad de conteo compatible o revisar el producto; no asignar 1 L por defecto.
 
-### RB-CA-03 — Precisión y representación (D/P)
+### RB-CA-03 — Precisión y representación (D; inventario aprobado en DP-03)
 
-Las cantidades fraccionarias se conservan de forma reproducible; no se redondea un peso a unidades enteras por comodidad. Escalas, límites de decimales, conversiones admitidas y visualización requieren DP-02/DP-03.
+DP-03 aprueba unidades individuales enteras y kg/L con hasta tres decimales; representación reproducible ×1.000 en la base, sin redondeos silenciosos de cantidades incompatibles. Los máximos técnicos experimentales siguen pendientes de revisión específica. La precisión/redondeo del dinero DP-02 no queda aprobada.
 
 Las cantidades comerciales verificadas también pueden conservarse en compras de productos sencillos, sin convertirlas en un supuesto saldo exacto del hogar.
 
-### RB-CA-04 — Saldo inicial y cambios de modo (P)
+### RB-CA-04 — Saldo inicial y cambios de modo (aprobado en DP-03)
 
-Propuesta DP-03: pedir un saldo o estado inicial confirmado al crear un producto fuera de una compra. Al crear un producto desde una compra, distinguir lo adquirido de lo que ya había en casa; no afirmar que el saldo previo era cero sin confirmación.
+DP-03 aprueba pedir un saldo o estado inicial confirmado al crear un producto fuera de una compra, sin generar gastos. Al crear un producto desde una compra, distinguir lo adquirido de lo que ya había en casa; no afirmar que el saldo previo era cero sin confirmación.
 
-No convertir «Queda poco» en una cantidad numérica arbitraria al cambiar al modo exacto. La usuaria debería indicar una cantidad actual. En sentido contrario, confirmar un estado o definir umbrales. Un cambio de unidad base exige conversión de saldo e interpretación histórica; no se cambia solo la etiqueta.
+No convertir «Queda poco» en una cantidad numérica arbitraria. Cambiar unidad base o tipo de control con historial exige una migración específica aprobada, incluyendo conversión de saldo e interpretación histórica; no basta editar una etiqueta. No se implementa esa migración ni se habilitan umbrales automáticos.
 
 ## 5. Estados y actualización del inventario
 
@@ -155,17 +155,17 @@ El saldo sigue la relación: **saldo posterior = saldo anterior + entradas confi
 
 No se deduce consumo por paso del tiempo, periodicidad de compra o marcas de la lista. No se añade seguimiento automático de consumo a V1.
 
-### RB-IN-02 — Control sencillo (O/P)
+### RB-IN-02 — Control sencillo (O; estados aprobados en DP-03)
 
-Los estados son «Disponible», «Queda poco» y «Agotado». La usuaria puede cambiarlos según lo que observa, sin introducir cantidades ficticias.
+Los estados aprobados son «Hay suficiente», «Queda poco» y «Agotado». «Disponible» se conserva como etiqueta histórica donde corresponda, sin reescribir registros anteriores. La usuaria puede cambiarlos según lo que observa, sin introducir cantidades ficticias.
 
-Propuesta DP-03: una compra que repone un producto sencillo sugiere «Disponible», y la usuaria revisa ese resultado antes de guardar. No hay reducción automática por uso supuesto. No se confunde la cantidad adquirida en un recibo con el saldo disponible de este modo.
+La propuesta histórica de sugerir un estado al comprar no autoriza reposición automática: la política de futuras compras requiere revisión específica. No hay reducción automática por uso supuesto. No se confunde la cantidad adquirida en un recibo con el saldo disponible de este modo.
 
-### RB-IN-03 — Umbrales y negativos (P)
+### RB-IN-03 — Umbrales y negativos (aprobado en DP-03)
 
 En modo exacto, si se desea mostrar también «Queda poco», se necesita un umbral explícito por producto. No se aprueban umbrales automáticos, alertas ni recomendaciones.
 
-Se propone no permitir saldos negativos y pedir corrección del dato o una explicación funcional antes de aceptarlos. Esta política y los valores de umbral requieren DP-03, no se consideran resueltos por este documento.
+No se permiten saldos negativos. Un dato inválido se corrige antes de confirmar; una explicación no autoriza un saldo negativo. DP-03 mantiene fuera los umbrales automáticos; no se implementan umbrales manuales por esta aprobación.
 
 ### RB-IN-04 — Ajustes manuales y trazabilidad (D/P)
 

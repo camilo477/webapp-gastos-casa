@@ -1,6 +1,6 @@
 # Recomendaciones DP-01 a DP-13
 
-**Registro de propuestas, no de aprobaciones.** Fecha: 21-11-2026. Los IDs y problemas proceden de [VISION](../VISION.md#8-decisiones-pendientes-de-aprobación); no se sustituyen sus reglas. La aprobación de Fase 04A autoriza el análisis, no la adopción de estas recomendaciones. El diseño visual ya aprobado se conserva; sus métricas de uso real siguen pendientes.
+**Antecedente de propuestas de 04A (21-11-2026), actualizado en 05C-4 (23-11-2026).** DP-03/07/08/10 están aprobadas solo para el inventario según [OWNER_DECISION_REVIEW](OWNER_DECISION_REVIEW.md). Las demás DP y las partes excluidas conservan sus pendientes. En los bloques históricos, «Aprobación: sí» significa que requerían aprobación, no una aprobación recibida. Los IDs y problemas proceden de [VISION](../VISION.md#8-decisiones-pendientes-de-aprobación); no se sustituyen sus reglas. La aprobación de Fase 04A autoriza el análisis, no la adopción de estas recomendaciones. El diseño visual ya aprobado se conserva; sus métricas de uso real siguen pendientes.
 
 ## DP-01 — Acceso y recuperación
 
@@ -25,6 +25,10 @@
 - **Aprobación:** **sí**, escala, fronteras y orden/regla de redondeo antes de persistencia. Los descuentos generales necesitan DP-04 separadamente.
 
 ## DP-03 — Unidades, apertura y control sencillo
+
+**Estado 05C-4:** aprobados exacto/aproximado, unidades enteras, kg/L con tres decimales, g/kg y ml/L explícitos, contenido confirmado de envases, apertura sin gasto, no negativos y los tres estados sin umbrales automáticos. Base/control con historial requieren migración específica. Máximos técnicos y compras/reposición no se aprueban por extensión.
+
+Antecedente de recomendación 04A:
 
 - **Problema:** equivalencias físicas, saldo inicial y reposición sin convertir estados en cantidades ficticias.
 - **Alternativas:** unidad libre por compra; base por producto con conversiones explícitas; controlar todo con cantidades; mantener control mixto.
@@ -70,6 +74,10 @@
 
 ## DP-07 — Límites y atomicidad
 
+**Estado 05C-4:** arquitectura de inventario aprobada: Standard/Native, documentos por producto, inventory-candidate-v1/esquema 2 con versión única, (default), us-east1, mi-casa-camilo-test, Spark; lecturas Auth/reglas y escrituras futuras por ejecutor confiable/Functions, demo independiente. El agregado recomendado históricamente abajo no es el contrato vigente. Solo el propietario tiene permiso para crear manualmente la base con deny-all; conexión, reglas/ACL y despliegues siguen sin autorización. Límites económicos/técnicos y migración permanecen sujetos a revisión.
+
+Antecedente de recomendación 04A:
+
 - **Problema:** 50/100 líneas necesitan validación segura además de escrituras atómicas.
 - **Alternativas:** documentos normalizados; estado agregado + diario; shards; ejecutor confiable; fraccionar compras.
 - **Recomendación:** ensayar el candidato agregado en emulador antes de elegirlo. No aprobar el normalizado ingenuo ni fraccionar el guardado. Si no cabe la validación completa, volver a decisión de arquitectura y considerar backend confiable con autorización.
@@ -80,6 +88,10 @@
 - **Aprobación:** **sí y bloqueante**, tras matriz 5/50/100 y métricas; no se fija ahora un máximo arbitrario.
 
 ## DP-08 — Categorías y establecimientos
+
+**Estado 05C-4:** aprobados los siete IDs/etiquetas del contrato, Sin clasificar por defecto, distinto de Otros, sin pantalla administrativa y conservando etiquetas históricas cuando corresponda. Mapeos antiguos, ampliaciones de catálogo y políticas de establecimientos/finanzas quedan fuera.
+
+Antecedente de recomendación 04A:
 
 - **Problema:** catálogos consistentes y consultas históricas pese a cambiar nombres actuales.
 - **Alternativas:** texto libre; catálogo fijo; catálogo editable; administración completa.
@@ -102,6 +114,10 @@
 - **Aprobación:** **sí**, criterio local y datos faltantes antes de validación final.
 
 ## DP-10 — Identificación de productos
+
+**Estado 05C-4:** aprobados IDs estables, sugerencias por nombre/presentación, confirmación humana, presentaciones distintas permitidas, nunca fusión automática y reintentos sin efectos duplicados. No se promete deduplicación perfecta; criterios técnicos pueden ajustarse mediante pruebas. Alias, fusión asistida y comparación de recibos continúan fuera.
+
+Antecedente de recomendación 04A:
 
 - **Problema:** evitar altas duplicadas sin confundir productos parecidos ni eliminar líneas legítimas repetidas.
 - **Alternativas:** nombre como ID; coincidencia exacta normalizada; sugerencias por nombre/presentación; fusión automática.

@@ -1,6 +1,6 @@
-# Contrato candidato consolidado de inventario — 05C-3
+# Contrato consolidado de inventario — aprobado en el alcance 05C-4
 
-**Candidato para ensayo local, no política de producción aprobada.** Revisión `inventory-candidate-v1`, `schemaVersion: 2`, fecha 23-11-2026. Este es el único contrato candidato implementado actualmente. Los modelos experimentales 05C-1 y los tipos de inventario 04D se conservan como antecedentes/versiones incompatibles, no como candidatos intercambiables. DP-03/07/08/10 y demás aspectos pendientes no cambian a aprobados.
+**Contrato aprobado expresamente por el propietario el 23-11-2026, Fase 05C-4**, en el alcance de inventario registrado en [OWNER_DECISION_REVIEW](OWNER_DECISION_REVIEW.md). Revisión `inventory-candidate-v1`, `schemaVersion: 2`; se conserva el identificador para evitar una migración nominal. Implementación y evidencia siguen siendo locales. Los máximos técnicos/económicos, la migración antigua y las políticas financieras no quedan aprobados por aceptar el contrato. Los modelos 05C-1 y 04D permanecen como antecedentes incompatibles. No se habilita ninguna conexión real.
 
 ## Modelo normalizado
 
@@ -40,7 +40,7 @@ Ejemplo de DTO interno (el campo updatedAt se convierte a Timestamp antes de esc
 
 El saldo es **250 g**, porque esa fue la apertura explícita, aunque la presentación diga 500 g. No se deduce un saldo por nombre/envase. Para aproximado se reemplazan control y stock por `simple` y `{status:"low"}`; no aparece una cantidad.
 
-## Categorías candidatas
+## Categorías aprobadas
 
 | ID | Etiqueta |
 | --- | --- |
@@ -52,11 +52,11 @@ El saldo es **250 g**, porque esa fue la apertura explícita, aunque la presenta
 | other | Otros |
 | unclassified | Sin clasificar |
 
-Otros es una elección consciente de categoría residual; Sin clasificar expresa que aún no se ha decidido y es el valor inicial propuesto en el formulario candidato. No se convierten automáticamente food/cleaning/service del laboratorio. Incluso food requiere decisión explícita en una vista previa de migración. Cambiar la categoría actual no reescribe el diario previo.
+Otros es una elección consciente de categoría residual; Sin clasificar expresa que aún no se ha decidido y es el valor inicial aprobado cuando no se ha seleccionado categoría. No se crea una pantalla de administración. Se conservan las etiquetas históricas cuando corresponda. No se convierten automáticamente food/cleaning/service del laboratorio. Incluso food requiere decisión explícita en una vista previa de migración. Cambiar la categoría actual no reescribe el diario previo.
 
 ## Cantidades, conversiones y estados
 
-- Representación exacta: entero ×1.000 de la base, saldo entre 0 y 1.000.000.000 escalados. Unidad contable solo múltiplos de 1.000; kg/L hasta tres decimales. Son límites **de ensayo**, pendientes de aprobación.
+- Representación exacta aprobada: entero ×1.000 de la base; unidad contable solo múltiplos de 1.000 y kg/L hasta tres decimales, sin negativos. El máximo de 1.000.000.000 escalados y los demás topes técnicos siguen siendo **de ensayo**, sujetos a revisión específica.
 - Entrada de cantidades: `{unit, amountMilli}` con unidad/kg/g/L/ml. Una entrada 250 g viaja como `{unit:"g",amountMilli:250000}` y se convierte a 250 kg-escalados. 1,25 kg corresponde a 1.250; 750 ml corresponde a 750 L-escalados.
 - Solo unidad→unidad, kg↔g y L↔ml. No convertir masa/volumen ni contar botellas como litros por su nombre. Gramos/ml fraccionarios no representables en la escala se rechazan; nunca se redondean silenciosamente.
 - Envase explícito: `{unit:"package",count:3,content:{unit:"g",amountMilli:500000}}` produce 1.500 kg-escalados. Count es entero y el contenido debe ser positivo, conocido y compatible con la base kg/L. Sin contenido, no convertir. La multiplicación usa BigInt y comprueba rango; no existe unidad «envase» persistida.
@@ -85,7 +85,7 @@ La lógica compartida usa nombre normalizado (sin diferencia de acentos/mayúscu
 
 La creación permite elegir un existente o confirmar «Es un producto distinto; quiero añadirlo». Un similar confirmado puede conservar otro ID y stock independiente. La decisión viaja con la intención, pero es declaración humana, no prueba de identidad física. Se buscan coincidencias en hasta 1.000 documentos, por páginas de 100; si queda cursor se informa que la revisión es parcial y se exige elección explícita. No se promete haber encontrado todo duplicado ni se recorre el historial.
 
-La edición conserva IDs/saldos y no fusiona por cambiar un texto. No se incluyen aún procesos de fusión de duplicados ya registrados. Los límites de lectura/costo, criterios de coincidencia y campos de presentación necesitan aprobación posterior.
+La edición conserva IDs/saldos y no fusiona por cambiar un texto. No se incluyen procesos de fusión de duplicados ya registrados. Nombre/presentación y confirmación humana están aprobados; límites de lectura/costo y criterios técnicos de coincidencia siguen sujetos a medición y ajuste sin cambiar esas reglas funcionales.
 
 ## Diferencias resueltas respecto de los antecedentes
 
@@ -99,7 +99,7 @@ La edición conserva IDs/saldos y no fusiona por cambiar un texto. No se incluye
 | Tiempo | Timestamp | ISO de red/Timestamp | Milisegundos internos/Timestamp con conversores estrictos |
 | Validación | Servidor y conversor frontend separados | Tipos documentales no ejecutados | Una implementación portable para ambos |
 
-Se elige una sola versión para simplificar coherencia doméstica y no combinar metadatos/saldo de revisiones diferentes. Puede producir más conflictos que versiones separadas; esa compensación es **una propuesta de ensayo** a confirmar en DP-07. El contrato financiero 04D no queda implementado ni automáticamente compatible por compartir nombres de campos.
+Se usa una sola versión para simplificar coherencia doméstica y no combinar metadatos/saldo de revisiones diferentes, como parte del contrato de inventario aprobado en DP-07. Puede producir más conflictos que versiones separadas y debe seguir midiéndose. El contrato financiero 04D no queda implementado, aprobado ni automáticamente compatible por compartir nombres de campos.
 
 ## Compatibilidad con compras futuras
 
@@ -111,7 +111,7 @@ No se ha implementado esa integración. El ejecutor financiero experimental ante
 
 1. Inventariar formatos/versiones y conservar respaldo original verificable; no borrar ni sobreescribir para que un lector deje de avisar.
 2. `previewLegacyMigration` es una función pura: acepta un producto experimental válido, ID de ruta y decisión **explícita por producto** de categoría/presentación; devuelve una vista previa, jamás escribe. Preserva ID, saldo/estado/base y tiempo original para revisión; incrementa la versión propuesta de 0 a 1 (o previa+1). No aprueba una migración por recibir confirmed=true.
-3. El propietario deberá aprobar DP-03/07/08/10, la revisión concreta y cada correspondencia ambigua. cleaning no se transforma automáticamente en household-care y service no se transforma en Otros/Sin clasificar. Revisar presentación desconocida como null, no inventarla.
+3. DP-03/07/08/10 están aprobadas solo para el inventario descrito; **la estrategia de migración y cada correspondencia ambigua requieren aprobación específica**. cleaning no se transforma automáticamente en household-care y service no se transforma en Otros/Sin clasificar. Revisar presentación desconocida como null, no inventarla.
 4. Solo en una fase autorizada, preparar un ejecutor específico con copia original inmutable, fingerprint/version esperada e idempotencia por producto; crear archivo de origen+operación y reemplazar el documento **en una transacción**, usando timestamp real de migración. La vista previa no es un comando de escritura listo para enviar.
 5. Comparar cantidades/estados/IDs antes/después; no modificar operaciones históricas ni hash de intenciones anteriores. Ante concurrencia/incompatibilidad, detener ese producto, sin conversión parcial silenciosa. Diseñar rollback mediante revisiones nuevas y control de versión, no restaurar un saldo viejo sobre cambios posteriores.
 
@@ -121,6 +121,6 @@ No hay script que aplique migraciones, lote destructivo, borrado de datos ni imp
 
 El candidato se usa por defecto en **dev:emulator**. El perfil **dev:emulator:legacy** mantiene las regresiones históricas, sin ser otra propuesta de contrato. Comparten laboratorio/persistencia: si hay documentos anteriores, el candidato avisa; no cambiarlos ni limpiar datos manuales para ocultar la advertencia. Para ensayos reproducibles, las suites arrancan emuladores propios vacíos y solo preparan fixtures ficticios. No ejecutar suites sobre un emulador manual ya ocupado.
 
-Demo sigue en RAM con su modelo anterior; no se presenta como cuenta real. Auth real sigue siendo solo Auth, sin cambios de proveedor/credenciales. La factoría de lectura real sigue bloqueada por código antes de obtener SDK; ahora su configuración candidata exige inventory-candidate-v1 y el mismo conversor probado. El UID real no se publica. Sin Firestore real, Blaze, despliegue, OCR, ubicaciones o compras remotas.
+Demo sigue en RAM con su modelo anterior; no se presenta como cuenta real. Auth real sigue siendo solo Auth, sin cambios de proveedor/credenciales. La factoría de lectura real sigue bloqueada por código antes de obtener SDK y exige inventory-candidate-v1 con el mismo conversor probado. El UID real no se publica. En 05C-4 se autoriza únicamente al propietario a crear manualmente Firestore Standard/Native, `(default)`, us-east1 en mi-casa-camilo-test, Spark y deny-all. La existencia remota necesita evidencia separada. No se publican reglas/ACL, conectan datos, activan Blaze o despliegan servicios.
 
-Pendiente del propietario: precisión/límites/contenido de envases/estados por defecto (DP-03), forma y versión única/compatibilidad financiera/migración/lecturas/costos (DP-07 y DP financieras), catálogo/default Sin clasificar y correspondencias (DP-08), presentación/sugerencias/confirmación de distintos (DP-10), además de retención y condiciones productivas de las demás DP. Publicar esta propuesta no cambia sus estados a aprobados.
+Pendiente: máximos técnicos/económicos, estados por defecto en futuras compras, compatibilidad financiera, estrategia de migración y mapeos antiguos, medición de consultas/coincidencias y condiciones de habilitación de lectura. Las reglas funcionales de unidades/envases/estados, versión/arquitectura de inventario, catálogo/default y duplicados sí están aprobadas con el alcance registrado. DP-01/02/04/05/06/09/11/12/13 no reciben una nueva aprobación. La política de retención y las demás condiciones productivas conservan sus aspectos pendientes.

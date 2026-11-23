@@ -62,6 +62,12 @@ El paquete `functions/packages/inventory-contract` se instala mediante los dos l
 
 [Entrega 05C-3](docs/FASE_05C_3.md), [contrato candidato consolidado](docs/architecture/CONSOLIDATED_INVENTORY_CONTRACT.md) y [decisiones pendientes](docs/architecture/OWNER_DECISION_REVIEW.md). La migración disponible es únicamente una **vista previa pura**, con revisión explícita por producto; no aplica cambios. La preparación de Firestore real ahora referencia ese candidato, pero su bloqueo continúa y no se autoriza producción ni una fase posterior.
 
+## Aprobaciones de inventario — Fase 05C-4
+
+El propietario aprobó el 23-11-2026 DP-03/07/08/10 para inventory-candidate-v1/esquema 2 y sus siete categorías. El identificador no cambia. También autorizó crear **manualmente** Firestore Standard/Native, (default), us-east1, en mi-casa-camilo-test, conservando Spark y deny-all. Esto no habilita la lectura real ni implica que Codex haya verificado la base remota.
+
+Sin cambios de aplicación, Authentication o reglas: demo y emuladores continúan funcionando; el adaptador real sigue bloqueado. No publicar reglas/ACL, introducir datos, activar Blaze o desplegar servicios. [Alcances aprobados](docs/architecture/OWNER_DECISION_REVIEW.md), [evidencia y pruebas 05C-4](docs/FASE_05C_4.md). Los textos 05C-3 anteriores describen esa entrega histórica; límites técnicos/económicos y migración conservan sus pendientes.
+
 ## Rutas
 
 | Ruta | Pantalla |

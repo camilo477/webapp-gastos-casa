@@ -1,6 +1,6 @@
 # Mi Casa — Requisitos
 
-Estado: fase 1, especificación inicial. No se ha implementado ni verificado funcionalidad.
+Especificación base de fase 1, actualizada el 23-11-2026 en 05C-4: aprobaciones de inventario DP-03/07/08/10 según [registro del propietario](architecture/OWNER_DECISION_REVIEW.md). La evidencia de implementación/pruebas se documenta por fase; esta actualización no conecta servicios reales.
 
 ## 1. Convenciones y prioridad
 
@@ -16,13 +16,13 @@ Los identificadores RF corresponden a requisitos funcionales; RNF, a no funciona
 | ID | Tipo | Requisito | Criterio de aceptación |
 | --- | --- | --- | --- |
 | RF-INV-01 | O | Incorporar al inventario todos los productos físicos de una compra confirmada | Cada línea física queda vinculada a un producto y produce el efecto correspondiente al modo de control una sola vez. |
-| RF-INV-02 | O | Ofrecer control exacto de cantidades, unidades, peso o volumen | Se identifica la unidad del saldo y se actualiza sin sumar magnitudes incompatibles. Conversiones y precisión: DP-02/DP-03. |
-| RF-INV-03 | O | Ofrecer control sencillo: disponible, queda poco y agotado | Se pueden consultar y cambiar los tres estados, sin exigir una cantidad exacta ficticia. La regla de reposición está pendiente en DP-03. |
+| RF-INV-02 | O | Ofrecer control exacto de cantidades, unidades, peso o volumen | Se identifica la unidad del saldo y se actualiza sin sumar magnitudes incompatibles. DP-03 aprobado: unidades individuales enteras, kg/L hasta tres decimales, conversiones explícitas g/kg y ml/L y contenido confirmado de envases. DP-02 monetaria sigue pendiente. |
+| RF-INV-03 | O | Ofrecer control sencillo: Hay suficiente, Queda poco y Agotado | Se pueden consultar y cambiar los tres estados, sin exigir una cantidad exacta ficticia. Estados aprobados en DP-03; sin umbrales automáticos. La política de futuras compras no se implementa aquí. |
 | RF-INV-04 | O | Buscar productos del inventario | Una búsqueda permite encontrar y seleccionar productos existentes; un resultado vacío permite iniciar su creación. |
-| RF-INV-05 | O | Crear y editar productos | Se puede definir y corregir su nombre, categoría y modo de control; no se altera por ello el historial financiero. Catálogos y cambios de modo: DP-03/DP-08. |
+| RF-INV-05 | O | Crear y editar productos | Se puede definir y corregir su nombre, categoría y modo de control; no se altera por ello el historial financiero. Nombre/presentación/categoría editables; cambios de base o control con historial exigen migración específica, DP-03. Catálogo aprobado en DP-08. |
 | RF-INV-06 | O | Actualizar existencias manualmente | Se puede registrar la cantidad actual o el estado observado sin generar un gasto nuevo. |
-| RF-INV-07 | O | Clasificar productos por categorías | El inventario muestra la categoría y permite usarla al registrar productos; catálogo inicial pendiente en DP-08. |
-| RF-INV-08 | O | Reconocer productos existentes para evitar duplicaciones innecesarias | Durante revisión y registro manual se ofrecen coincidencias y la posibilidad de seleccionar un producto; una coincidencia dudosa no crea ni fusiona productos silenciosamente. |
+| RF-INV-07 | O | Clasificar productos por categorías | El inventario muestra la categoría y permite usarla al registrar productos; catálogo de siete IDs aprobado en DP-08; Sin clasificar por defecto, distinto de Otros, sin pantalla adicional de administración. |
+| RF-INV-08 | O | Reconocer productos existentes para evitar duplicaciones innecesarias | Durante revisión y registro manual se ofrecen coincidencias y la posibilidad de seleccionar un producto; una coincidencia dudosa exige confirmación humana, permite presentaciones distintas y nunca fusiona automáticamente. IDs independientes del nombre; reintentos del mismo ID no duplican operaciones, DP-10. |
 | RF-INV-09 | D | Separar presentación comercial de unidad del inventario | «2 botellas de 1 L» permite distinguir cantidad de compra y volumen; si falta el contenido, no se inventa. |
 | RF-INV-10 | D | Conservar la identidad histórica del producto | Cambiar el nombre o categoría actuales no reescribe lo que describía una compra anterior. Política detallada: RB-PR-04. |
 

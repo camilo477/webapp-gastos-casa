@@ -1,5 +1,11 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
+## Aprobaciones y creación manual — Fase 05C-4
+
+El propietario aprobó el 23-11-2026 DP-03/07/08/10 exclusivamente para el [inventario consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md). Configuración elegida: mi-casa-camilo-test, Firestore Standard/Native, (default), us-east1 y Spark. Puede crear la base **manualmente**, con reglas iniciales de producción deny-all. La creación no está automatizada ni se deduce de esta aprobación; ver [evidencia y resultados 05C-4](../FASE_05C_4.md).
+
+Mantener cerrados lector real, reglas personalizadas, ACL, datos/semillas, Functions/Hosting y Blaze. No modificar Authentication ni el archivo Auth privado. El [procedimiento del propietario](FIRESTORE_READ_PREPARATION.md) distingue el permiso de creación de las habilitaciones posteriores. Las secciones 05C-3/05C-2 siguientes describen sus antecedentes; sus pendientes ya aprobados se resuelven solo con el alcance del [registro vigente](OWNER_DECISION_REVIEW.md).
+
 ## Consolidación 05C-3: un candidato local, sin activación real
 
 El [contrato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md) se prueba con esquema 2, presentación, categorías candidatas y una versión de registro. Es el único candidato nuevo; los parsers/ejecutores anteriores se conservan como compatibilidad histórica explícita. Ninguna DP se convierte en aprobada.

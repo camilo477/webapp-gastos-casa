@@ -1,8 +1,8 @@
 # Mi Casa — Visión del proyecto
 
-Estado: análisis inicial, fase 1. Nombre provisional: **Mi Casa**.
+Documento base de análisis (fase 1), actualizado el 23-11-2026 en 05C-4 para registrar las aprobaciones de inventario. Nombre: **Mi Casa**.
 
-Este documento describe el alcance solicitado. No autoriza implementar la aplicación ni configurar servicios. Las propuestas identificadas como **DP** requieren una decisión antes de convertirse en alcance aprobado.
+Este documento describe el alcance solicitado y conserva antecedentes de fase 1. Las decisiones de inventario DP-03/07/08/10 están aprobadas exclusivamente según el [registro 05C-4](architecture/OWNER_DECISION_REVIEW.md), con fecha 23-11-2026. Las demás propuestas/aspectos pendientes requieren decisión propia. El permiso de creación manual de Firestore por el propietario no permite conexión, ACL, reglas personalizadas o despliegues.
 
 ## 1. Problema y propósito
 
@@ -58,7 +58,7 @@ La orientación propuesta es procesar las imágenes en el dispositivo y enviar �
 
 No se utilizará almacenamiento permanente de fotografías, incluidas copias en base64, miniaturas o texto OCR completo. La política técnica detallada de recursos temporales se propone en [REGLAS_NEGOCIO.md](REGLAS_NEGOCIO.md).
 
-La fase actual solo entrega los cuatro documentos solicitados. No incluye código, dependencias, configuración Firebase, servicios de producción, despliegue, commits ni push.
+El alcance original de fase 1 entregó solo documentación. El estado posterior y sus autorizaciones se registran por fase; en 05C-4 solo se actualizan decisiones/documentación y se ejecuta regresión, sin conectar inventario real.
 
 ## 7. Criterios de éxito y validación futura
 
@@ -78,20 +78,20 @@ No se fija una tasa de acierto OCR ni un tiempo máximo de reconocimiento sin pr
 
 ## 8. Decisiones pendientes de aprobación
 
-Este registro es la referencia común para los otros documentos. Una regla marcada **P** es una propuesta, aunque se describa con detalle para poder revisarla.
+Este registro es la referencia común para los otros documentos. Una regla marcada **P** sigue siendo propuesta salvo aprobación expresa del alcance correspondiente. **23-11-2026: DP-03/07/08/10 aprobadas para inventario; límites/migración y las otras DP conservan sus pendientes.** La columna siguiente identifica también las decisiones parcialmente resueltas; el detalle vigente está en OWNER_DECISION_REVIEW.
 
 | ID | Decisión pendiente | Propuesta inicial y motivo | Resolver antes de |
 | --- | --- | --- | --- |
 | DP-01 | Acceso, alta inicial y recuperación de cuenta | Elegir con la usuaria un método de Authentication sencillo, compatible con el presupuesto; restringir los datos a su identidad, sin registro público por defecto. | Diseñar acceso y seguridad. |
 | DP-02 | Precisión del dinero, cantidades y redondeo | Representación decimal exacta o enteros con escala; COP como única moneda. Definir decimales admitidos, redondeo y reparto de residuos; no usar aritmética binaria aproximada como fuente contable. | Diseñar contratos de datos y cálculos. |
-| DP-03 | Unidades, contenido de empaques y estados | Proponer unidad base por producto, conversiones explícitas, saldo inicial confirmado, ausencia de negativos; al reponer un producto sencillo proponer «Disponible» para revisión. Definir umbrales y cambios de modo sin inventar cantidades. | Diseñar edición de productos e inventario. |
+| DP-03 | Inventario aprobado en 05C-4; límites/migraciones específicos pendientes | Exacto y aproximado; unidades enteras, kg/L hasta tres decimales, g/kg y ml/L explícitos; envases con contenido confirmado; apertura sin gasto; no negativos; Hay suficiente/Queda poco/Agotado, sin umbrales automáticos. Base/control con historial requieren migración específica. | Revisar máximos técnicos y autorizar cualquier migración. |
 | DP-04 | Descuentos globales, impuestos y cargos | Descuentos por línea explícitos; proponer reparto proporcional de descuentos generales y registrar cargos aparte con categoría explícita. Validar qué formatos reales se necesitan. | Diseñar el resumen de compra. |
 | DP-05 | Correcciones después de confirmar | Proponer que una compra confirmada no se modifique directamente en V1. Si se requiere rectificación, definir una operación trazable que ajuste dinero y stock juntos; devoluciones y anulaciones no están aprobadas. | Cerrar alcance del historial. |
 | DP-06 | Borradores, desconexión e interrupciones | Proponer imágenes y OCR solo en memoria; sin confirmación offline. Proponer lista y borrador estructurado solo durante la sesión inicial. Decidir si deben sobrevivir cierres y cómo recuperar un intento de guardado incierto sin guardar fotos. | Diseñar navegación, recuperación y PWA. |
-| DP-07 | Límites y viabilidad sin backend propio | Medir fotos, resolución, memoria, artículos y tamaño de operación; demostrar atomicidad y validación en reglas Firestore antes de elegir esquema. No fijar límites arbitrarios ni fraccionar un guardado visible como si fuera atómico. | Aprobar arquitectura de datos. |
-| DP-08 | Categorías y establecimientos | Acordar catálogo inicial y si puede editarse; proponer categorías sencillas y «Sin clasificar» explícito. No crear administradores de catálogos por defecto. | Diseñar formularios y filtros. |
+| DP-07 | Arquitectura de inventario aprobada; límites y otras áreas pendientes | Standard/Native, documentos por producto, inventory-candidate-v1/schemaVersion 2, (default), us-east1, mi-casa-camilo-test, Spark; Auth/reglas para lecturas, ejecutor confiable/Functions futuros, demo independiente. Sin permiso de despliegue/conexión. | Autorizar por separado lectura, reglas/ACL y futuras escrituras; revisar límites económicos/técnicos y migración. |
+| DP-08 | Categorías de inventario aprobadas; establecimientos y ampliaciones pendientes | food/household-care/personal-hygiene/pharmacy/pets/other/unclassified; etiquetas del contrato aprobado. Sin clasificar por defecto, distinto de Otros; sin pantalla administrativa; conservar etiquetas históricas. | Revisar mapeos antiguos y cambios futuros; no recategorizar historia silenciosamente. |
 | DP-09 | Fecha o establecimiento faltante | Proponer fecha confirmada por la usuaria y establecimiento «Sin especificar» si no lo conoce. Fecha de compra separada de fecha de guardado; no deducir fechas ambiguas. Validar uso de fecha local colombiana. | Diseñar validación de compra. |
-| DP-10 | Coincidencias y nombres abreviados | Proponer sugerencias por nombre y presentación, confirmadas por la usuaria. Aprender alias, fusionar productos y avisar por recibos similares son mejoras opcionales. | Diseñar selección de productos. |
+| DP-10 | Identidad y duplicados de productos aprobados; parámetros medibles pendientes | IDs estables, sugerencias por nombre/presentación y confirmación humana; presentaciones distintas permitidas; nunca fusión automática ni duplicación de efectos por reintentos. Sin garantía de deduplicación perfecta. Alias/fusión asistida/recibos similares siguen fuera. | Medir criterios técnicos sin modificar estas reglas funcionales. |
 | DP-11 | Parámetros visuales y pruebas con la usuaria | Proponer WCAG 2.2 AA como objetivo, texto base cercano a 18 px y controles táctiles de al menos 48 × 48 px, validándolo en su dispositivo. Acordar métricas de uso y navegadores. | Autorizar diseño visual. |
 | DP-12 | Interpretación del historial de precios | Conservar cantidad comprada, presentación e importe de línea; proponer distinguir precio unitario del recibo y precio efectivo tras descuentos, comparando solo unidades compatibles. No implica gráficos o predicciones. | Diseñar detalle e historial. |
 | DP-13 | Representación de gastos sin inventario | Proponer un mismo registro financiero canónico para compras mixtas y gastos independientes, con líneas que indiquen si afectan inventario. Evita dos registros financieros para un mismo desembolso. | Diseñar modelo conceptual definitivo. |

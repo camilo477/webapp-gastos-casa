@@ -1,4 +1,12 @@
-# Inventario — propuestas para revisión del propietario
+# Inventario — aprobaciones vigentes y propuestas históricas
+
+**Actualización 05C-4, 23-11-2026:** el propietario aprobó expresamente DP-03/07/08/10 para el inventario del [contrato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md), revisión inventory-candidate-v1 / schemaVersion=2. El [registro de aprobación](OWNER_DECISION_REVIEW.md) distingue alcances y exclusiones.
+
+Quedan aprobados control exacto/aproximado, unidades enteras y kg/L hasta tres decimales, g/kg y ml/L explícitos, contenido confirmado de envases, aperturas sin gasto, no negativos, los tres estados y ausencia de umbrales automáticos; cambios de base/control con historial exigen migración específica. También los siete IDs/etiquetas del catálogo, Sin clasificar por defecto y distinto de Otros, sin administración adicional y preservando etiquetas históricas; IDs estables, sugerencias por nombre/presentación y decisión humana, sin fusión automática ni efectos duplicados por reintentos o garantía de deduplicación perfecta.
+
+Arquitectura aprobada de inventario: Standard/Native, documentos por producto, esquema 2 y versión única, `(default)`, us-east1, mi-casa-camilo-test, Spark; Auth/reglas para lectura y ejecutor confiable/Functions para escrituras futuras, demo independiente. El propietario tiene permiso separado para crear manualmente una base con deny-all; no equivale a evidencia de creación ni a permiso para conectar el lector, publicar reglas, aprovisionar ACL o desplegar servicios.
+
+Siguen pendientes máximos técnicos/económicos, ajustes técnicos de coincidencias basados en medición, mapeos/migración y contratos financieros. Los bloques inferiores son el **antecedente 05C-2**, incluidos sus textos «pendiente»: no revocan los alcances aprobados ni describen el runtime actual. No se aprueban otras DP por asociación.
 
 **Actualización 05C-3:** el [contrato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md) implementa y prueba un único candidato local con presentación, siete categorías y schemaVersion=2. No aprueba producción ni migra documentos. Los detalles inferiores conservan la propuesta histórica 05C-2; donde describen código experimental son antecedentes, no el estado del candidato actual.
 

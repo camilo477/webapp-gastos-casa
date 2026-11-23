@@ -2,6 +2,10 @@
 
 **Solo planificación. Cada etapa necesita alcance autorizado y sus decisiones previas aprobadas.** Fecha: 22-11-2026. La base es [04C](../FASE_04C.md), no el agregado 04B. No hay código de persistencia productiva ni pantallas nuevas en 04D. [Tabla del propietario](OWNER_DECISION_REVIEW.md), [contratos](FINAL_CONTRACT_PROPOSAL.md), [persistencia](PERSISTENCE_POLICY.md).
 
+## Estado vigente de inventario — 05C-4
+
+El propietario aprobó el 23-11-2026 el inventario inventory-candidate-v1/esquema 2 y el alcance DP-03/07/08/10 del [registro](OWNER_DECISION_REVIEW.md): versión única, siete categorías, Standard/Native, (default), us-east1, mi-casa-camilo-test y Spark. El permiso manual de creación de base es independiente de lectura, reglas/ACL, Functions/Hosting y Blaze, que no se autorizan aquí. Los apartados A–I inferiores conservan el plan histórico 04D; sus versiones separadas o contratos financieros no sustituyen el inventario aprobado. Los cambios exactos para una futura lectura están en [FASE_05C_4](../FASE_05C_4.md); no se ejecutan en esta fase.
+
 ## Preparación técnica antes de A
 
 | Área | Estado observado | Preparación propuesta y comprobación requerida |
