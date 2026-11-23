@@ -3,22 +3,11 @@ import { getAuth, signOut } from 'firebase/auth';
 import { collection, connectFirestoreEmulator, documentId, getDocs, initializeFirestore, limit, orderBy, query, startAfter, terminate, where } from 'firebase/firestore/lite';
 import { connectFunctionsEmulator, getFunctions, httpsCallable } from 'firebase/functions';
 import { LOCAL_AUTH_UID, requireLocalAuthentication, type Configuration } from '../../application/configuration';
-import { categoryId, inventoryError, InventoryError, LOCAL_CATEGORIES, type InventoryProduct, type LocalInventoryPort } from '../../application/inventory';
+import { categoryId, inventoryError, InventoryError, type InventoryProduct, type LocalInventoryPort } from '../../application/inventory';
+import { decodeInventoryProduct } from '../../application/inventory-product';
+export { decodeInventoryProduct } from '../../application/inventory-product';
 import { normalizeName } from '../../domain/policy';
 
-export function decodeInventoryProduct(id: string, data: Record<string, unknown>): InventoryProduct {
-  const cat = data.categoryId as keyof typeof LOCAL_CATEGORIES;
-  const time = data.updatedAt as { toMillis?: () => number } | undefined;
-  const expected = ['name', 'categoryId', 'unit', 'control', 'version', 'updatedAt', data.control === 'exact' ? 'quantityMilli' : 'status'];
-  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(id) || Object.keys(data).length !== expected.length || expected.some(k => !Object.hasOwn(data, k)) ||
-      typeof data.name !== 'string' || !data.name.trim() || data.name.length > 100 || !Object.hasOwn(LOCAL_CATEGORIES, cat) ||
-      !['unidad', 'kg', 'L'].includes(String(data.unit)) || !Number.isSafeInteger(data.version) || Number(data.version) < 0 || Number(data.version) > 1e9 ||
-      !time?.toMillis || !Number.isFinite(time.toMillis())) throw new InventoryError('Hay un producto que no podemos leer. Revisa los datos del laboratorio.');
-  const metadata = { id, name: data.name, category: LOCAL_CATEGORIES[cat], unit: data.unit as InventoryProduct['unit'], version: Number(data.version), updatedAtMillis: time.toMillis() };
-  if (data.control === 'exact' && Number.isSafeInteger(data.quantityMilli) && Number(data.quantityMilli) >= 0 && Number(data.quantityMilli) <= 1e9 && (data.unit !== 'unidad' || Number(data.quantityMilli) % 1000 === 0)) return { ...metadata, control: 'exact', quantityMilli: Number(data.quantityMilli) };
-  if (data.control === 'simple' && ['available', 'low', 'empty'].includes(String(data.status))) return { ...metadata, control: 'simple', status: data.status as 'available' | 'low' | 'empty' };
-  throw new InventoryError('Hay una cantidad que no podemos leer. Revisa los datos del laboratorio.');
-}
 export function createEmulatorInventory(config: Configuration, hostname: string): LocalInventoryPort {
   requireLocalAuthentication(config, hostname);
   if (config.mode !== 'emulator') throw new Error('EMULATOR_INVENTORY_ONLY');

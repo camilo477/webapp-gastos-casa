@@ -1,5 +1,15 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
+## Preparación 05C-2: futura lectura Firestore, sin conexión real
+
+El inventario local 05C-1 sigue funcionando. La nueva preparación añade un puerto **solo lectura**, adaptador Firestore Lite probado con mocks/emuladores y [reglas candidatas](../../security/inventory-read.firestore.rules) basadas en una ACL administrativa privada. El UID real no figura en reglas ni archivos públicos; anónimo, otras identidades, escrituras y rutas no previstas permanecen denegados. Las reglas candidatas no se desplegaron y no sustituyen el artefacto deny-all existente.
+
+`main.tsx`, la autenticación real y su archivo local no se modifican. La factoría futura permanece bloqueada por código antes de obtener servicios SDK, aun con configuración/aprobación completas. No hay un modo nuevo activo ni una variable que permita desbloquear esta fase. No se creó Firestore, activó Blaze o desplegó ningún servicio; no se validaron reglas ni conexión en el proyecto real.
+
+Consultar la [guía del propietario](FIRESTORE_READ_PREPARATION.md) para Standard/Native, recomendación pendiente `us-east1`, cuotas/costos, UID administrativo, índices y condiciones de autorización/activación. La [propuesta de contrato](INVENTORY_CONTRACT_REVIEW.md) mantiene pendientes DP-03/07/08/10 y las demás decisiones no aprobadas; el lector solo acepta el formato experimental 05C-1, no el contrato anidado 04D ni las siete categorías propuestas.
+
+Pruebas locales: `npm run test:inventory:read` (Node 24/JDK≥21). Ejecuta reglas y adaptador real **contra emuladores**, sin conectar el proyecto real. Ejecutar aparte `test:auth:emulator` y `test:inventory:emulator` para conservar sus reglas y regresiones anteriores. [Resultados y limitaciones 05C-2](../FASE_05C_2.md). Las secciones inferiores conservan su contexto histórico; la preparación no autoriza ejecutar los pasos manuales futuros.
+
 ## Validación 05B-3: correo y contraseña comprobados en el proyecto autorizado
 
 El propietario proporcionó y aprobó expresamente la configuración de su proyecto de pruebas y su primera cuenta. Los valores permanecen solo en `.env.auth-test.local`, excluido de Git. Se comprobaron realmente login introducido por el propietario, UID/claims de proyecto, recarga, rutas privadas, logout, contraseña incorrecta y recuperación de conexión; la secuencia supervisada no mostró solicitudes financieras remotas. Ver [resultados y límites de 05B-3](../FASE_05B_3.md).

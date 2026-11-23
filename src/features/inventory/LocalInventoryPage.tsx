@@ -8,8 +8,10 @@ import { InventoryProductRow } from './InventoryProductRow';
 import { ProductForm } from './ProductForm';
 import { StockForm } from './StockForm';
 import { useStatusMessage } from '../../hooks/useStatusMessage';
+import type { InventoryReadPort } from '../../application/inventory-read';
 
-export function LocalInventoryPage({ service }: { service: LocalInventoryPort }) {
+export function LocalInventoryPage({ service }: { service: LocalInventoryPort | InventoryReadPort }) {
+  const writer = 'mutate' in service ? service : null;
   const [query, setQuery] = useState(''), [category, setCategory] = useState('all');
   const [items, setItems] = useState<InventoryProduct[]>([]), [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true), [error, setError] = useState('');
@@ -24,9 +26,12 @@ export function LocalInventoryPage({ service }: { service: LocalInventoryPort })
       if (request !== generation.current) return;
       setItems(previous => after ? [...new Map([...previous, ...page.items].map(p => [p.id, p])).values()] : page.items);
       setCursor(page.nextCursor);
-    } catch (cause) { if (request === generation.current) setError(cause instanceof Error ? cause.message : 'No pudimos cargar los productos.'); }
+    } catch (cause) { if (request === generation.current) {
+      if (!writer) { setItems([]); setCursor(null); }
+      setError(cause instanceof Error ? cause.message : 'No pudimos cargar los productos.');
+    } }
     finally { if (request === generation.current) setLoading(false); }
-  }, [category, query, service]);
+  }, [category, query, service, writer]);
   useEffect(() => {
     setItems([]); setCursor(null); setLoading(true);
     const timer = setTimeout(() => { void load(); }, 200);
@@ -46,20 +51,20 @@ export function LocalInventoryPage({ service }: { service: LocalInventoryPort })
   const close = () => { setEditor(null); requestAnimationFrame(() => returnFocus.current?.isConnected && returnFocus.current.focus()); };
   const saved = () => { announce('Producto guardado en el laboratorio local. Tus gastos no cambian.'); void load(); };
   return <>
-    <PageHeading title="Mi inventario">Mira cuánto queda y actualízalo cuando lo necesites.</PageHeading>{statusNode}
+    <PageHeading title="Mi inventario">{writer?'Mira cuánto queda y actualízalo cuando lo necesites.':'Consulta los productos y cuánto queda en casa.'}</PageHeading>{statusNode}
     <div className="filter-row"><TextField label="Buscar un producto" type="search" leadingIcon="search" placeholder="Por ejemplo, arroz" value={query} onChange={e=>setQuery(e.target.value)}/>
       <SelectField label="Categoría" value={category} options={[{ value:'all',label:'Todos los productos' }, ...Object.values(LOCAL_CATEGORIES).map(v=>({value:v,label:v}))]} onChange={setCategory}/></div>
-    <div className="section-heading"><h2>Lo que hay en casa</h2><Button variant="secondary" icon="plus" onClick={()=>open({kind:'new'})}>Añadir producto</Button></div>
+    <div className="section-heading"><h2>Lo que hay en casa</h2>{writer&&<Button variant="secondary" icon="plus" onClick={()=>open({kind:'new'})}>Añadir producto</Button>}</div>
     <Button variant="secondary" disabled={loading || Boolean(editor)} onClick={()=>void load()}>Actualizar productos</Button>
-    {editor?.kind==='new' && <ProductForm key="new" categories={Object.values(LOCAL_CATEGORIES)} onDone={close} onSaved={saved} save={(operationId,productId,input)=>service.mutate(createProductCommand(operationId,productId,input))}/>}
-    {editor?.kind==='edit' && <ProductForm key={'edit-'+editor.product.id} product={editor.product} categories={Object.values(LOCAL_CATEGORIES)} onDone={close} onSaved={saved}
-      save={(operationId,productId,input)=>service.mutate({schemaVersion:1,kind:'inventoryEdit',operationId,productId,expectedVersion:editor.product.version,name:input.name,categoryId:categoryId(input.category)})}/>}
-    {editor?.kind==='stock' && <StockForm key={'stock-'+editor.product.id} product={editor.product} onDone={close} onSaved={saved}
-      save={(operationId,action,value)=>service.mutate({schemaVersion:1,kind:'inventoryAdjust',operationId,productId:editor.product.id,expectedVersion:editor.product.version,action,value})}/>}
+    {writer && editor?.kind==='new' && <ProductForm key="new" categories={Object.values(LOCAL_CATEGORIES)} onDone={close} onSaved={saved} save={(operationId,productId,input)=>writer.mutate(createProductCommand(operationId,productId,input))}/>}
+    {writer && editor?.kind==='edit' && <ProductForm key={'edit-'+editor.product.id} product={editor.product} categories={Object.values(LOCAL_CATEGORIES)} onDone={close} onSaved={saved}
+      save={(operationId,productId,input)=>writer.mutate({schemaVersion:1,kind:'inventoryEdit',operationId,productId,expectedVersion:editor.product.version,name:input.name,categoryId:categoryId(input.category)})}/>}
+    {writer && editor?.kind==='stock' && <StockForm key={'stock-'+editor.product.id} product={editor.product} onDone={close} onSaved={saved}
+      save={(operationId,action,value)=>writer.mutate({schemaVersion:1,kind:'inventoryAdjust',operationId,productId:editor.product.id,expectedVersion:editor.product.version,action,value})}/>}
     {loading && <LoadingIndicator label="Cargando productos…"/>}
     {error && <div role="alert"><p className="field-error">{error}</p><Button variant="secondary" onClick={()=>void load()}>Reintentar carga</Button></div>}
-    {!loading && !error && !items.length && <EmptyState title={cursor?'La búsqueda continúa':'No hay productos para mostrar'}>{cursor?'Pulsa Ver más productos para seguir buscando.':'Prueba otro nombre o añade un producto. El inventario local comienza vacío.'}</EmptyState>}
-    {items.length>0 && <ul className="inventory-list">{items.map(product=><InventoryProductRow key={product.id} product={product} onEdit={()=>open({kind:'edit',product})} onUpdate={()=>open({kind:'stock',product})}/>)}</ul>}
+    {!loading && !error && !items.length && <EmptyState title={cursor?'La búsqueda continúa':'No hay productos para mostrar'}>{cursor?'Pulsa Ver más productos para seguir buscando.':writer?'Prueba otro nombre o añade un producto. El inventario local comienza vacío.':'Todavía no hay productos que puedas consultar con este filtro. Prueba otro nombre o vuelve a actualizar.'}</EmptyState>}
+    {items.length>0 && <ul className="inventory-list">{items.map(product=><InventoryProductRow key={product.id} product={product} onEdit={writer?()=>open({kind:'edit',product}):undefined} onUpdate={writer?()=>open({kind:'stock',product}):undefined}/>)}</ul>}
     {cursor && !loading && <Button variant="secondary" onClick={()=>void load(cursor)}>Ver más productos</Button>}
   </>;
 }

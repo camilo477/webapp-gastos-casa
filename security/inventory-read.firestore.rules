@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function configuredOwner(uid) {
+      let access = get(/databases/$(database)/documents/_access/inventory).data;
+      return access.keys().hasOnly(['schemaVersion', 'enabled', 'ownerUid'])
+        && access.schemaVersion == 1 && access.enabled == true
+        && access.ownerUid is string && access.ownerUid == uid;
+    }
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid && configuredOwner(uid);
+    }
+    match /users/{uid}/products/{productId} {
+      allow get: if owner(uid);
+      allow list: if request.query.limit != null && request.query.limit > 0
+        && request.query.limit <= 100 && owner(uid);
+      allow write: if false;
+    }
+    // Includes the administrative ACL, operations, financial data and nested/unknown routes.
+    // Only a separately authorized IAM administrator can provision the ACL, outside client SDKs.
+    match /{document=**} { allow read, write: if false; }
+  }
+}

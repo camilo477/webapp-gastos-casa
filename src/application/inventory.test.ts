@@ -12,7 +12,7 @@ describe('local inventory boundary',()=>{
   it('maps only normalized product documents with version and server timestamp',()=>{
     const p={name:'Arroz ficticio',categoryId:'food',control:'exact',unit:'unidad',quantityMilli:2000,version:0,updatedAt:{toMillis:()=>12}};
     expect(decodeInventoryProduct('p',p)).toMatchObject({id:'p',category:'Alimentos',quantityMilli:2000,version:0,updatedAtMillis:12});
-    for(const patch of [{version:-1},{quantityMilli:1500},{categoryId:'unknown'},{control:'mixed'},{updatedAt:null},{uid:'other'}])expect(()=>decodeInventoryProduct('p',{...p,...patch})).toThrow();
+    for(const patch of [{version:-1},{quantityMilli:1500},{categoryId:'unknown'},{categoryId:['food']},{unit:['kg']},{control:'simple',status:['low']},{control:'mixed'},{updatedAt:null},{updatedAt:{toMillis:'invalid'}},{uid:'other'}])expect(()=>decodeInventoryProduct('p',{...p,...patch})).toThrow();
   });
   it('separates creation and initial stock from any financial command',()=>{
     const command=createProductCommand('o','p',{name:'Ficticio',category:'Alimentos',unit:'kg',control:'exact',initialQuantityMilli:1250,initialStatus:'available'});

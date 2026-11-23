@@ -48,6 +48,8 @@ La **Fase 05B-2** prepara un adaptador Auth para un futuro proyecto real de prue
 
 En **05B-3** se validó correo/contraseña en el proyecto real autorizado por el propietario; su configuración permanece exclusivamente local e ignorada. **05C-1 no amplía esa autorización a Firestore ni Functions reales.** Para repetir la nueva integración completa, con los emuladores manuales detenidos: `npm run test:inventory:emulator` (Node 24, JDK≥21). Incluye las pruebas del servidor 05A y el recorrido React. [Resultados y límites 05C-1](docs/FASE_05C_1.md).
 
+**05C-2 prepara una futura lectura real, todavía bloqueada:** puerto sin modificaciones, adaptador Firestore Lite y reglas con autorización administrativa por UID, sin incluir identidades reales en archivos públicos. No está conectado a `main.tsx`; ninguna variable `.env` desbloquea esta fase. Demo, emuladores y Auth real conservan su comportamiento. `npm run test:inventory:read` prueba la preparación exclusivamente con Auth/Firestore Emulator; ejecutar separado de las demás suites que usan sus puertos. [Entrega 05C-2](docs/FASE_05C_2.md), [guía manual y región propuesta](docs/architecture/FIRESTORE_READ_PREPARATION.md), [contratos pendientes de aprobación](docs/architecture/INVENTORY_CONTRACT_REVIEW.md). No crear bases ni publicar reglas/ACL sin autorización posterior.
+
 ## Rutas
 
 | Ruta | Pantalla |
