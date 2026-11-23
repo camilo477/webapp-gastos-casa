@@ -1,91 +1,72 @@
-# Fase 05B-3 — Validación real pendiente de configuración autorizada
+# Fase 05B-3 — Validación real de Firebase Authentication
 
-Fecha: 23-11-2026, America/Bogota. Base comprobada: `eb2ef76a021574e7de0e120a9133e7234295c1fe`, rama `main`, árbol inicial limpio y remoto coincidente.
+Fecha: 23-11-2026, America/Bogota. Base de esta continuación: `4ff74f98cd271aa40d67e27bed14aa9359f55141`, rama `main`, árbol inicial limpio y remoto coincidente. La revisión anterior partió de `eb2ef76a021574e7de0e120a9133e7234295c1fe` y documentó el bloqueo por ausencia de configuración.
 
-**La fase permanece abierta: NO se ha validado Firebase Authentication real.** En la revisión inicial no existe `.env.auth-test.local`. No se conocen ni se inventan proyecto de pruebas, UID, proveedor o aprobación vinculada al proyecto. No se establece ninguna conexión Auth real ni se crea el archivo local con valores ficticios como sustituto de una aprobación.
+**Correo y contraseña validados realmente con la cuenta y el proyecto de pruebas autorizados por el propietario.** No se utilizaron mocks para los resultados reales descritos abajo. Google y una segunda cuenta real no forman parte de este ensayo autorizado. No se inicia 05C.
 
-## Alcance realizado y bloqueo
+## Autorización y configuración local
 
-Se revisaron AGENTS, [05B-2](FASE_05B_2.md), [guía Firebase](architecture/FIREBASE_IMPLEMENTATION_GUIDE.md), parser de configuración, comando de arranque y suites. El mensaje del propietario autoriza exclusivamente el proyecto que haya configurado y aprobado expresamente; no identifica por sí mismo un proyecto o unas cuentas. Falta el archivo local que permite comprobar esa vinculación.
+El propietario confirmó la creación del proyecto de pruebas, app web, proveedor de correo/contraseña y primera cuenta, y autorizó expresamente usar ese proyecto. Se creó/completó `.env.auth-test.local` con los valores proporcionados, sin imprimirlos ni copiarlos a código, ejemplos o documentación. Proyecto, API key web, appId, UID y texto de aprobación quedan exclusivamente en ese archivo local ignorado. El plan Spark consta por la confirmación del propietario; no se accedió a Console/Billing ni se verificó administrativamente su facturación.
 
-No se inspeccionó una sesión personal del navegador ni se solicitaron contraseñas, tokens o archivos administrativos. No se ejecutó el adaptador con configuración real. Las pruebas locales usan los fixtures previamente existentes y el caso negativo sin aprobación; no sirven para acreditar Google ni correo/contraseña reales.
+Se comprobó con el parser existente que la configuración es válida, que aprobación/proyecto coinciden, que origen y dominio son coherentes y que el único método es password. `git check-ignore .env.auth-test.local` confirma su exclusión; `git ls-files` confirma que no está versionado. Una búsqueda por valores reales, sin imprimirlos, confirmó su ausencia en archivos versionados y en el build de demo. No se añadieron contraseñas, tokens, service accounts ni claves administrativas.
 
-No cambian SDK, rutas, componentes, diseño, negocio, reglas, dependencias ni configuración de servicios. Este documento registra el avance local y la guía para reanudar; publicarlo no cierra la validación real ni autoriza otra fase.
+El volumen local presenta permisos 0777 y no aplica `chmod 0600`: se intentó restringir el archivo, pero la lectura posterior mostró que no cambió. No se afirma protección por permisos Unix que este volumen no proporciona. La exclusión de Git está verificada; la configuración contiene valores públicos del SDK e identidad autorizada, nunca contraseñas ni tokens. No se modificó ningún montaje o permiso del sistema para eludir esa limitación.
 
-## Preparar el archivo local, sin compartir secretos
+Se ejecutó `npm run dev:auth-test`, con la arquitectura existente, en `http://localhost:5175/acceso`. El intento restringido falló con EPERM al abrir el puerto; se inició fuera del sandbox con autorización. No se cambiaron SDK, rutas, componentes, diseño, reglas, dominio, dependencias ni lógica de sesión.
 
-El propietario debe seleccionar su proyecto ya creado y aprobado y comprobar personalmente que sigue en **Spark**, sin cuenta de facturación vinculada. Los pasos detallados de Console están en la [guía](architecture/FIREBASE_IMPLEMENTATION_GUIDE.md#guía-manual-para-el-propietario-solo-tras-autorizar-el-proyecto). No crear proyectos sustitutivos, activar proveedores nuevos ni aprovisionar usuarios adicionales dentro de este ensayo.
+## Cómo se obtuvo la evidencia real
 
-En Configuración del proyecto → General → Tus apps → aplicación web → Configuración del SDK, copiar de la **misma app** `projectId`, `apiKey`, `authDomain` y `appId`. En Authentication → Usuarios, obtener el UID de la cuenta existente autorizada. Si no existe esa cuenta, mantener el ensayo pendiente; no autorizar automáticamente al primer usuario ni usar su email como UID.
+Se abrió una ventana aislada de Chrome, sin perfil personal ni sesión previa. El propietario escribió correo y contraseña directamente en el formulario. La automatización no escribió ni leyó contraseñas, no inspeccionó perfiles personales y no exportó storageState, HAR, capturas, grabaciones, headers o cuerpos de respuestas de la sesión real.
 
-Crear `/mnt/Datos/mi-casa/versionado/.env.auth-test.local` con este formato, dejando cada valor pendiente vacío hasta disponer del dato verdadero:
+El primer controlador perdió su canal stdin entre turnos. La ventana y su proceso permanecieron abiertos; se recuperó el control de ese mismo proceso mediante un canal local temporal, sin reiniciar la sesión ni pedir credenciales al asistente. El diagnóstico temporal se cerró al terminar cada intervención. La primera comprobación encontró sesión anónima; el propietario confirmó que había probado también el logout. Después dejó la sesión abierta para poder verificarla directamente. No se presentó ese estado anónimo como prueba de un login fallido.
 
-```dotenv
-VITE_APP_MODE=auth-test
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_APP_ID=
-VITE_AUTH_TEST_OWNER_UID=
-VITE_AUTH_TEST_PROVIDERS=
-VITE_AUTH_TEST_GOOGLE_FLOW=popup
-VITE_AUTH_TEST_ORIGIN=http://localhost:5175
-VITE_AUTH_TEST_APPROVAL=
-```
+La instrumentación temporal, fuera del repositorio, leyó el estado del SDK oficial de la propia ventana y devolvió únicamente booleanos de coincidencia y contadores. Se verificaron UID, proyecto (`aud`), emisor (`iss`), sujeto (`sub`), proveedor password y token vigente; ninguno de sus valores se imprimió o versionó. Se observaron ocho renovaciones con HTTP 200 del endpoint real de tokens durante la secuencia, incluidas restauraciones al recargar/navegar y recuperación de red. No se sustituyeron respuestas del proveedor por mocks ni se usó el emulador como servidor de la sesión real.
 
-En proveedores, escribir `google` o `password` según el método ya configurado y expresamente aprobado; usar ambos únicamente si ambos están autorizados. En aprobación, el propietario escribe `owner-approved-auth-only:` seguido exactamente de su `projectId`. No se completa esa aprobación en su nombre.
+Se supervisaron solo metadatos de solicitudes de la ventana, sin capturar credenciales o payloads. La ventana de pruebas restringía los destinos a localhost y los servicios Auth configurados; se bloqueaban altas/actualizaciones/borrados de cuentas y destinos ajenos. No se observaron solicitudes financieras remotas durante la secuencia instrumentada. Esa observación no es una auditoría de IAM, reglas productivas, otras ventanas o de toda la infraestructura del proyecto.
 
-El parser actual exige ID terminado en `-test`, dominio `<projectId>.firebaseapp.com` y UID distinto del demo. Si el proyecto existente no cumple el formato, informar la incompatibilidad antes de intentar conexiones; no inventar otro ID, intentar renombrarlo ni crear otro proyecto automáticamente. No copiar variables del emulador a este archivo ni mezclar orígenes. Revisar `localhost` en los dominios autorizados de Authentication. No hace falta Hosting, Firestore o Functions para el ensayo local con popup.
+## Resultados reales comprobados
 
-No escribir contraseñas, refresh/access tokens, claves privadas ni credenciales administrativas en el archivo, la terminal, capturas o chat. La configuración pública del SDK no es una service account. `.gitignore` ya excluye `.env.auth-test.local`; comprobarlo con `git check-ignore .env.auth-test.local`, nunca con un comando que imprima el contenido. El asistente deberá revisar presencia/coherencia sin imprimir valores sensibles antes de activar el ensayo.
-
-## Guía de validación manual, todavía SIN ejecutar
-
-Requisitos: archivo válido con aprobación vinculada, proveedor confirmado, cuenta existente autorizada y navegador del propietario. Para el caso de rechazo, hace falta además otra cuenta **ya existente en el mismo proyecto y expresamente autorizada para esa prueba**. Con Google, no probar una cuenta ausente del proyecto: el primer acceso podría crearla, operación no autorizada en esta fase.
-
-Con esos requisitos completos y comprobados, iniciar únicamente `npm run dev:auth-test` y abrir `http://localhost:5175/inventario`. El propietario introduce las credenciales solo en la interfaz o ventana oficial del proveedor, sin entregarlas al asistente. No reutilizar perfiles personales, exportar HAR/storageState ni grabar tokens, emails o datos de cuentas en evidencias versionadas.
-
-| Caso real | Procedimiento y resultado esperado | Estado actual |
-| --- | --- | --- |
-| Rutas privadas sin sesión | Abrir inventario/compras/lista/gastos; mostrar acceso, nunca contenido privado mientras se comprueba identidad | Pendiente |
-| Inicio de sesión | Entrar con la cuenta y método aprobados; recuperar la ruta y mostrar el aviso de ejemplos ajenos a la cuenta | Pendiente |
-| Recarga/restauración | Recargar y abrir otra pestaña del mismo origen; recuperar solo identidad validada, sin recuperar cambios financieros de ejemplo | Pendiente |
-| Logout | Salir, volver con Atrás, recargar y revisar otra pestaña; no reaparece sesión ni estado de ejemplos anterior | Pendiente |
-| UID diferente | Usar únicamente la segunda cuenta existente autorizada; acceso denegado y limpieza de identidad local, sin crear ni borrar cuentas Auth | Pendiente; falta también aprobación de segunda cuenta |
-| Credenciales incorrectas | Solo con password aprobado, un intento controlado sobre la cuenta permitida; error cotidiano y contraseña retirada del formulario, sin reiterar intentos | Pendiente; depende del proveedor |
-| Cancelación Google | Solo con Google aprobado, cerrar la ventana antes de completar el acceso; mensaje comprensible y reintento disponible | Pendiente; depende del proveedor |
-| Conexión interrumpida | Interrumpir únicamente el acceso de red del navegador durante login/revalidación; error y recuperación sin fallback a otro proyecto/modo | Pendiente |
-| Ejemplos e identidad | Confirmar avisos de que los ejemplos no pertenecen a la cuenta, editar solo un ejemplo y salir; no queda estado de la identidad previa | Pendiente en modo real |
-| Red sin finanzas | Inspeccionar solo host/ruta/método/tipo de solicitudes; ninguna llamada a Firestore, Functions, Storage u otros servicios financieros; no copiar headers/cuerpos/tokens | Pendiente en modo real |
-| Accesibilidad/móvil | Teclado, foco, mensajes, 360/390/430/768 px y texto 200 %; después dispositivo/navegador real aprobado, incluyendo el popup del proveedor | Pendiente del flujo real |
-
-Registrar únicamente fecha, navegador/dispositivo, método aprobado y resultado de cada caso; sin valores de configuración, identificadores personales, contraseñas ni tokens. Un caso no disponible por falta de cuenta/proveedor/dispositivo queda pendiente o no aplicable con su motivo; no se reemplaza por un mock y se marca correcto.
-
-El entorno del asistente no dispone de credenciales ni de una sesión interactiva del proveedor aprobado. Si no puede completar Google real, el propietario debe ejecutar esos pasos en su navegador e informar resultados; no introducir contraseñas personales en herramientas de automatización. No se promete que la emulación de viewport o el SDK simulado validen Safari/móvil/OAuth reales.
-
-## Seguridad conservada
-
-Modo demostración sin SDK ni cuenta; emuladores con proyecto/UID ficticios independientes; producción y staging rechazados. Ninguna alta de usuario real, proyecto, base, despliegue o cambio de facturación. No se ejecutan operaciones financieras remotas ni se migran ejemplos. La autorización UI por UID no sustituye las futuras reglas y validaciones del servidor: el servidor actual sigue siendo exclusivamente local y el artefacto de reglas de pruebas sigue cerrado y no desplegado.
-
-## Evidencia local de esta revisión
-
-Ejecutadas de nuevo con Node 24.22.3, sin configuración/cuentas reales:
-
-| Comando | Resultado en esta revisión |
+| Comprobación | Resultado y evidencia |
 | --- | --- |
-| `npm run build` (incluye `npm run typecheck`) | Correcto; 83 módulos y mismos hashes de artefactos que la base, sin cambios de código/estilos |
-| `npm test` | **135 correctas / diez archivos**, unitarias y componentes |
-| `npm run test:e2e` | **144 correctas, una omisión histórica** de zoom real en Chromium headless; las pruebas de accesibilidad, teclado, tamaños y ampliación de texto del prototipo permanecen activas |
-| `npm run test:auth:emulator` | **24 Playwright correctas y cuatro casos de reglas cerradas**, salida 0 y apagado de emuladores |
-| `npm run typecheck:server` | Correcto |
-| `npm run test:server` | **Diez casos correctos**, acreditados individualmente fuera del sandbox |
+| Conexión Auth | Correcta: SDK real y renovaciones HTTP 200 contra el servicio real de tokens del proyecto autorizado |
+| Inicio de sesión | Correcto: credenciales introducidas por el propietario; después se observó usuario Auth autenticado y pantalla privada accesible |
+| UID autorizado | Correcto: identidad obtenida desde Firebase Auth, coincidencia exacta con el UID local aprobado, sujeto del token y proyecto/emisor esperados |
+| Restauración al recargar | Correcta: recarga sin introducir contraseña, identidad/claims nuevamente válidos y vista privada recuperada |
+| Rutas con sesión | Correctas: inventario, gastos, lista y nueva compra accesibles, con aviso de ejemplos ficticios |
+| Rutas sin sesión | Correctas: antes de ingresar, inventario llevó al acceso sin contenido privado; después del logout, gastos volvió al acceso |
+| Cierre de sesión | Correcto: botón Cerrar sesión, SDK sin usuario, vistas privadas ocultas; recarga mantiene logout y la ruta privada redirige |
+| Credenciales incorrectas | Correcto: el propietario introdujo una contraseña deliberadamente incorrecta para la misma cuenta; se observó un HTTP 400 de Authentication y el mensaje «No pudimos ingresar con esos datos. Revisa el correo y la contraseña.»; SDK anónimo y ninguna vista privada |
+| Error de conexión | Correcto: se desconectó solo la red de la ventana durante una revalidación real; apareció el error de conexión y se ocultó contenido privado. Se observaron dos solicitudes fallidas deliberadas, no un fallo espontáneo del servicio |
+| Recuperación de red | Correcta: al restaurar red se recuperó la misma identidad autorizada, con token vigente y acceso privado; no hubo fallback a otro modo/proyecto |
+| Ejemplos y finanzas | Aviso explícito de que los ejemplos no pertenecen a la cuenta; cero solicitudes financieras remotas observadas durante las comprobaciones. No se guardaron compras ni se migraron datos a una base |
+| Interfaz de acceso | Chrome de escritorio a 360/390/430/768 px, texto 100 % y 200 %: sin desbordamiento horizontal, campos y botón visibles. Navegación por teclado correo → contraseña → Ingresar correcta; sin capturas de la sesión real |
 
-Los intentos iniciales restringidos no iniciaron los servidores/puertos de navegador y emuladores; el runner del servidor informó solo un archivo. Se repitieron fuera del sandbox con autorización y se contaron los casos reales de las suites. Esos fallos iniciales no se presentaron como verificaciones correctas.
+Al finalizar estas comprobaciones, la ventana quedó sin sesión, mostrando el error esperado del intento incorrecto. La aplicación local puede seguir sirviéndose en 5175; no se despliega en ningún entorno.
 
-Se inspeccionó la captura local de acceso a 360 px con texto 200 %. La evidencia de geometría/axe se limita a Chromium y a la interfaz del prototipo/emulador; no acredita un dispositivo físico ni la pantalla del proveedor real. Las pruebas Google unitarias siguen usando SDK simulado. No se ejecutó ninguna prueba de autenticación real ni se eligió proveedor para sustituir la decisión pendiente del propietario.
+## Límites de la validación real
 
-Los logs, builds, capturas, bases y resultados generados quedan ignorados por Git. No se versionan configuraciones, datos personales ni archivos generados. No se copian resultados históricos como si se hubieran ejecutado en esta revisión. La publicación documental es un punto de avance, no el cierre de 05B-3.
+- No se creó ni utilizó una segunda cuenta real: el rechazo de otro UID real sigue sin ensayar porque únicamente se autorizó la primera cuenta y se prohibieron altas adicionales. El rechazo de UID ajeno permanece cubierto por unitarias y emuladores; no se presenta como ensayo real con otra identidad.
+- Google no está habilitado ni autorizado para esta ejecución. No se probó Google real, su cancelación ni redirección. Sus mocks anteriores no se convierten en evidencia real. Cancelación de proveedor no aplica al formulario password.
+- No se provocó revocación administrativa, deshabilitación de la cuenta ni expiración real de un refresh token. Se comprobó renovación real y recuperación de red; la expiración inválida/revocación simulada conserva pruebas locales.
+- Las anchuras móviles y ampliación de texto corresponden a Chrome de escritorio. No acreditan teléfono físico, Safari, lector de pantalla ni zoom de navegador donde la prueba histórica se omite.
+- No hay servidor de datos real habilitado. La allowlist de React no sustituye las futuras reglas y la validación del servidor. No se crearon Firestore, Functions, Hosting, otros proveedores, cuentas adicionales ni recursos de producción; no se activó Blaze ni se operó sobre datos financieros reales.
 
-Gemini se omite: no hay implementación ni decisiones arquitectónicas nuevas; se revisan documentación y resultados de las suites existentes. Se mantiene revisión propia de alcance, configuración, contenido versionado y límites de evidencia.
+## Regresiones automatizadas y auditoría
 
-La ausencia del archivo y la autorización/configuración específica impide completar el objetivo real de 05B-3. No se declara proveedor real funcionando, login/logout/restauración reales correctos ni ausencia de llamadas financieras en una sesión real no ejecutada. **No se inicia 05C.**
+Se ejecutaron las regresiones correspondientes con Node 24.22.3 y los fixtures locales existentes, separadas de la ventana real:
+
+| Verificación | Resultado |
+| --- | --- |
+| `npm run build` (incluye `npm run typecheck`) | Correcto; 83 módulos y artefactos de demo sin valores de la configuración real |
+| `npm test` | 135 correctas / diez archivos, unitarias y componentes |
+| `npm run test:e2e` | 144 correctas, una omisión histórica de zoom real en Chromium headless; incluye aislamiento de demo, accesibilidad, teclado y tamaños |
+| `npm run test:auth:emulator` | 24 Playwright correctas y cuatro casos de reglas cerradas, salida 0 y apagado de emuladores |
+| Servidor, revisión inicial de esta misma 05B-3 | `typecheck:server` correcto y diez pruebas correctas acreditadas individualmente; no cambió código del servidor en esta continuación |
+
+Los primeros intentos restringidos de navegador/emuladores fallaron por sockets y se repitieron fuera del sandbox con autorización. No se eliminaron ni deshabilitaron pruebas. La suite Auth usa un caso negativo de configuración sin aprobación; no utiliza los valores locales como autorización para conectarse al proyecto real. La prueba de demo tampoco inicializa servicios reales. No se vuelve a contar un mock Google como prueba real.
+
+Solo cambian este informe y el estado de la guía Firebase. `.gitignore` ya excluye `.env`, resultados, builds, logs y datos de emuladores. Se audita contenido y valores reales antes de preparar/publicar: ningún UID real, configuración local, token, dato personal o archivo generado debe entrar al commit. No hay cambios de diseño, negocio o SDK ni necesidad de un commit de código.
+
+Gemini se omite: no se modifica implementación ni arquitectura; el trabajo consiste en verificar comportamiento existente y documentar evidencia. Se mantiene revisión propia de límites, configuración, resultados y contenido versionado. Las decisiones funcionales pendientes conservan su estado.
+
+El commit/push documental se verifica contra el SHA remoto y se comunica fuera de este archivo. **No se inicia la Fase 05C.**

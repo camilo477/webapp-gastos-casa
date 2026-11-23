@@ -1,8 +1,10 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
-## Validación 05B-3 en curso: falta configuración autorizada
+## Validación 05B-3: correo y contraseña comprobados en el proyecto autorizado
 
-La revisión 05B-3 no encontró `.env.auth-test.local`; no se estableció ninguna conexión Auth real. Se ejecutaron las regresiones locales y se preparó una [guía de configuración y validación manual](../FASE_05B_3.md). La fase sigue abierta hasta disponer del proyecto/cuentas/proveedor aprobados y evidencia del acceso real. No completar automáticamente la aprobación ni reutilizar fixtures del emulador como configuración real.
+El propietario proporcionó y aprobó expresamente la configuración de su proyecto de pruebas y su primera cuenta. Los valores permanecen solo en `.env.auth-test.local`, excluido de Git. Se comprobaron realmente login introducido por el propietario, UID/claims de proyecto, recarga, rutas privadas, logout, contraseña incorrecta y recuperación de conexión; la secuencia supervisada no mostró solicitudes financieras remotas. Ver [resultados y límites de 05B-3](../FASE_05B_3.md).
+
+No se habilitaron otros proveedores, cuentas, recursos ni despliegues. Google, una segunda identidad real y dispositivos físicos no se dan por probados. El servidor de datos sigue cerrado y no se inicia 05C. La preparación y las condiciones de configuración siguientes se conservan; una autorización no se extiende automáticamente a otro proyecto, proveedor o cuenta.
 
 ## Preparación 05B-2: adaptador preparado, sin activación real
 
