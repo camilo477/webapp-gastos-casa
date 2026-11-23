@@ -1,0 +1,132 @@
+// LAB ONLY. Generated exhaustive checks, not a production policy (DPs pending).
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == 'demo-owner-04b' && request.auth.uid == uid;
+    }
+    function keys(value, expected) {
+      return value is map && value.keys().toSet() == expected.toSet();
+    }
+    function natural(value, limit) { return value is int && value >= 0 && value <= limit; }
+    function label(value) { return value is string && value.size() > 0 && value.size() <= 100; }
+    function id(value) { return value is string && value.matches('^[a-zA-Z0-9_-]{1,64}$'); }
+    function category(value) { return value in ['food', 'cleaning', 'service']; }
+    function status(value) { return value in ['available', 'low', 'empty']; }
+    function product(p) {
+      return label(p.name) && category(p.categoryId) && p.unit in ['unidad', 'kg', 'L'] &&
+        ((p.control == 'exact' && keys(p, ['name','categoryId','unit','control','quantityMilli']) &&
+          natural(p.quantityMilli, 1000000000) && (p.unit != 'unidad' || p.quantityMilli % 1000 == 0)) ||
+         (p.control == 'simple' && keys(p, ['name','categoryId','unit','control','status']) && status(p.status)));
+    }
+    function balance(p) { return p.control == 'exact' ? p.quantityMilli : p.status; }
+    function balanceType(value, p) { return p.control == 'exact' ? value is int : value is string; }
+    function quantity(l, p) {
+      return natural(l.quantityMilli, 1000000000) && l.quantityMilli > 0 &&
+        ((l.unit == p.unit && (p.unit != 'unidad' || l.quantityMilli % 1000 == 0)) ||
+         (p.unit == 'kg' && l.unit == 'g' && l.quantityMilli % 1000 == 0) ||
+         (p.unit == 'L' && l.unit == 'ml' && l.quantityMilli % 1000 == 0));
+    }
+    function delta(l) { return l.unit in ['g','ml'] ? l.quantityMilli / 1000 : l.quantityMilli; }
+    function money(l) {
+      let gross = l.kind == 'expense' || l.priceMode == 'total'
+        ? l.priceCOP : math.floor((l.priceCOP * l.quantityMilli + 500) / 1000);
+      return natural(l.priceCOP, 1000000) && natural(l.discountCOP, 1000000000) &&
+        l.discountCOP <= gross && l.netCOP is int && l.netCOP == gross - l.discountCOP && l.netCOP <= 1000000000;
+    }
+    function physical(o, i, before, after, l) {
+      let p = after[l.productId];
+      let existsBefore = l.productId in before;
+      let oldBalance = existsBefore ? balance(before[l.productId]) : (p.control == 'exact' ? 0 : 'empty');
+      let m = o.movements[l.id];
+      return keys(l, ['id','kind','name','categoryId','productId','newProduct','control','baseUnit',
+          'quantityMilli','unit','priceCOP','priceMode','discountCOP','netCOP','stockStatus']) &&
+        id(l.productId) && l.newProduct is bool && l.newProduct == !(l.productId in o.frames[0]) &&
+        product(p) && l.name == p.name && l.categoryId == p.categoryId &&
+        l.control == p.control && l.baseUnit == p.unit && status(l.stockStatus) &&
+        l.priceMode in ['unit','total'] && quantity(l, p) &&
+        after.diff(before).affectedKeys().hasOnly([l.productId]) &&
+        (!existsBefore || p.diff(before[l.productId]).affectedKeys().hasOnly(['quantityMilli','status'])) &&
+        keys(m, ['id','lineId','productId','kind','before','after','unit']) &&
+        m.id == 'purchase:' + o.operationId + ':' + l.id && m.lineId == l.id &&
+        m.productId == l.productId && m.kind == 'purchase' && m.unit == p.unit &&
+        balanceType(m.before, p) && balanceType(m.after, p) && m.before == oldBalance && m.after == balance(p) &&
+        (p.control == 'exact' ? p.quantityMilli == oldBalance + delta(l) : p.status == l.stockStatus);
+    }
+    function line(o, i) {
+      let l = o.lines[i];
+      let before = o.frames[i];
+      let after = o.frames[i+1];
+      return l is map && l.id == 'line-' + string(i) &&
+        before is map && after is map && money(l) &&
+        natural(o.physicalCounts[i+1], 100) &&
+        o.physicalCounts[i+1] == o.physicalCounts[i] + (l.kind == 'product' ? 1 : 0) &&
+        natural(o.prefixCOP[i+1], 1000000000) && o.prefixCOP[i+1] == o.prefixCOP[i] + l.netCOP &&
+        (l.kind == 'product' ? physical(o, i, before, after, l) :
+          l.kind == 'expense' && label(l.name) && category(l.categoryId) && keys(l, ['id','kind','name','categoryId','priceCOP','discountCOP','netCOP']) &&
+          before == after && !(l.id in o.movements));
+    }
+    // Per-index checks are generated; financial and physical prefix counts are verified at every step.
+    // GENERATED_CHECKS
+    function purchase(o, old, next) {
+      return keys(o, ['schemaVersion','operationId','kind','beforeRevision','afterRevision','createdAt',
+          'purchaseDate','store','lines','movements','frames','prefixCOP','physicalCounts','totalPaidCOP']) &&
+        o.lines is list && o.lines.size() > 0 && o.lines.size() <= 100 &&
+        o.frames is list && o.frames.size() == o.lines.size()+1 &&
+        o.prefixCOP is list && o.prefixCOP.size() == o.lines.size()+1 && o.prefixCOP[0] == 0 &&
+        o.movements is map && o.physicalCounts is list && o.physicalCounts.size() == o.lines.size()+1 &&
+        o.physicalCounts[0] is int && o.physicalCounts[0] == 0 && o.prefixCOP[0] is int &&
+        o.movements.size() == o.physicalCounts[o.lines.size()] && natural(o.totalPaidCOP, 1000000000) &&
+        o.purchaseDate is timestamp && label(o.store) &&
+        o.frames[0] == old.products && o.frames[o.lines.size()] == next.products &&
+        o.totalPaidCOP == o.prefixCOP[o.lines.size()] &&
+        checks(o);
+    }
+    function adjustment(o, old, next) {
+      let p = old.products[o.productId];
+      let n = next.products[o.productId];
+      return keys(o, ['schemaVersion','operationId','kind','beforeRevision','afterRevision','createdAt',
+          'productId','expectedRevision','before','after']) &&
+        id(o.productId) && natural(o.expectedRevision, 1000000000) && o.expectedRevision == old.revision &&
+        product(n) && n.diff(p).affectedKeys().hasOnly(['quantityMilli','status']) &&
+        next.products.diff(old.products).affectedKeys().hasOnly([o.productId]) &&
+        balanceType(o.before, p) && balanceType(o.after, n) && o.before == balance(p) && o.after == balance(n);
+    }
+    function state(s) {
+      return keys(s, ['schemaVersion','revision','lastOperationId','updatedAt','products']) &&
+        s.schemaVersion is int && s.schemaVersion == 1 && natural(s.revision, 1000000000) &&
+        s.updatedAt == request.time && s.products is map;
+    }
+    function paired(o, old, next, operationId) {
+      return o.schemaVersion is int && o.schemaVersion == 1 && natural(o.beforeRevision, 1000000000) &&
+        natural(o.afterRevision, 1000000000) && o.operationId == operationId && id(operationId) &&
+        o.beforeRevision == old.revision && o.afterRevision == old.revision + 1 &&
+        next.revision == o.afterRevision && next.lastOperationId == operationId &&
+        o.createdAt == request.time;
+    }
+    match /users/{uid}/state/current {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && state(request.resource.data) && request.resource.data.revision == 0 &&
+        request.resource.data.products == {} && request.resource.data.lastOperationId == '';
+      // The fresh operation's create rule validates the complete transition. An existing op cannot authorize this write.
+      allow update: if owner(uid) && state(request.resource.data) && id(request.resource.data.lastOperationId) &&
+        !exists(/databases/$(database)/documents/users/$(uid)/operations/$(request.resource.data.lastOperationId)) &&
+        request.resource.data.revision == resource.data.revision + 1 &&
+        getAfter(/databases/$(database)/documents/users/$(uid)/operations/$(request.resource.data.lastOperationId)).data.afterRevision == request.resource.data.revision;
+      allow delete: if false;
+    }
+    match /users/{uid}/operations/{operationId} {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && validOperation(uid, operationId);
+      allow update, delete: if false;
+    }
+    function validOperation(uid, operationId) {
+      let old = get(/databases/$(database)/documents/users/$(uid)/state/current).data;
+      let next = getAfter(/databases/$(database)/documents/users/$(uid)/state/current).data;
+      let o = request.resource.data;
+      return paired(o, old, next, operationId) &&
+        (o.kind == 'purchase' ? purchase(o, old, next) : o.kind == 'stockAdjust' && adjustment(o, old, next));
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

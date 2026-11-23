@@ -112,6 +112,7 @@ Las pruebas cubren 320/360/390/430/768/1280 px con raíz tipográfica al 100 % y
 - [Diseño aprobado](docs/design/DESIGN_SYSTEM.md).
 - [Preparación de Git, auditoría y limitaciones de transporte](docs/GIT.md).
 - [Fase 04A: propuestas de arquitectura Firebase y condiciones de viabilidad](docs/FASE_04A.md). Documentación para revisión; no implementa persistencia ni aprueba automáticamente decisiones pendientes.
+- [Fase 04B: laboratorio Firebase y resultado negativo de viabilidad](docs/FASE_04B.md). Pruebas aisladas, reglas reales y límites medidos; [dictamen y alternativas](docs/architecture/FIREBASE_FEASIBILITY.md). No conecta el prototipo a Firebase.
 
 COP enteros; cantidades con hasta tres decimales; conversiones únicamente kg/g y L/ml. El redondeo, las categorías de ejemplo y el estado propuesto al reponer son supuestos documentados del prototipo. No hay descuentos generales/prorrateos, cambios de control o unidad de un producto existente ni correcciones de compras confirmadas.
 

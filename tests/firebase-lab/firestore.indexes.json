@@ -1,0 +1,10 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    { "collectionGroup": "state", "fieldPath": "products", "indexes": [] },
+    { "collectionGroup": "operations", "fieldPath": "frames", "indexes": [] },
+    { "collectionGroup": "operations", "fieldPath": "lines", "indexes": [] },
+    { "collectionGroup": "operations", "fieldPath": "movements", "indexes": [] },
+    { "collectionGroup": "operations", "fieldPath": "prefixCOP", "indexes": [] }
+  ]
+}

@@ -1,0 +1,232 @@
+// LAB ONLY. Generated exhaustive checks, not a production policy (DPs pending).
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == 'demo-owner-04b' && request.auth.uid == uid;
+    }
+    function keys(value, expected) {
+      return value is map && value.keys().toSet() == expected.toSet();
+    }
+    function natural(value, limit) { return value is int && value >= 0 && value <= limit; }
+    function label(value) { return value is string && value.size() > 0 && value.size() <= 100; }
+    function id(value) { return value is string && value.matches('^[a-zA-Z0-9_-]{1,64}$'); }
+    function category(value) { return value in ['food', 'cleaning', 'service']; }
+    function status(value) { return value in ['available', 'low', 'empty']; }
+    function product(p) {
+      return label(p.name) && category(p.categoryId) && p.unit in ['unidad', 'kg', 'L'] &&
+        ((p.control == 'exact' && keys(p, ['name','categoryId','unit','control','quantityMilli']) &&
+          natural(p.quantityMilli, 1000000000) && (p.unit != 'unidad' || p.quantityMilli % 1000 == 0)) ||
+         (p.control == 'simple' && keys(p, ['name','categoryId','unit','control','status']) && status(p.status)));
+    }
+    function balance(p) { return p.control == 'exact' ? p.quantityMilli : p.status; }
+    function balanceType(value, p) { return p.control == 'exact' ? value is int : value is string; }
+    function quantity(l, p) {
+      return natural(l.quantityMilli, 1000000000) && l.quantityMilli > 0 &&
+        ((l.unit == p.unit && (p.unit != 'unidad' || l.quantityMilli % 1000 == 0)) ||
+         (p.unit == 'kg' && l.unit == 'g' && l.quantityMilli % 1000 == 0) ||
+         (p.unit == 'L' && l.unit == 'ml' && l.quantityMilli % 1000 == 0));
+    }
+    function delta(l) { return l.unit in ['g','ml'] ? l.quantityMilli / 1000 : l.quantityMilli; }
+    function money(l) {
+      let gross = l.kind == 'expense' || l.priceMode == 'total'
+        ? l.priceCOP : math.floor((l.priceCOP * l.quantityMilli + 500) / 1000);
+      return natural(l.priceCOP, 1000000) && natural(l.discountCOP, 1000000000) &&
+        l.discountCOP <= gross && l.netCOP is int && l.netCOP == gross - l.discountCOP && l.netCOP <= 1000000000;
+    }
+    function physical(o, i, before, after, l) {
+      let p = after[l.productId];
+      let existsBefore = l.productId in before;
+      let oldBalance = existsBefore ? balance(before[l.productId]) : (p.control == 'exact' ? 0 : 'empty');
+      let m = o.movements[l.id];
+      return keys(l, ['id','kind','name','categoryId','productId','newProduct','control','baseUnit',
+          'quantityMilli','unit','priceCOP','priceMode','discountCOP','netCOP','stockStatus']) &&
+        id(l.productId) && l.newProduct is bool && l.newProduct == !(l.productId in o.frames[0]) &&
+        product(p) && l.name == p.name && l.categoryId == p.categoryId &&
+        l.control == p.control && l.baseUnit == p.unit && status(l.stockStatus) &&
+        l.priceMode in ['unit','total'] && quantity(l, p) &&
+        after.diff(before).affectedKeys().hasOnly([l.productId]) &&
+        (!existsBefore || p.diff(before[l.productId]).affectedKeys().hasOnly(['quantityMilli','status'])) &&
+        keys(m, ['id','lineId','productId','kind','before','after','unit']) &&
+        m.id == 'purchase:' + o.operationId + ':' + l.id && m.lineId == l.id &&
+        m.productId == l.productId && m.kind == 'purchase' && m.unit == p.unit &&
+        balanceType(m.before, p) && balanceType(m.after, p) && m.before == oldBalance && m.after == balance(p) &&
+        (p.control == 'exact' ? p.quantityMilli == oldBalance + delta(l) : p.status == l.stockStatus);
+    }
+    function line(o, i) {
+      let l = o.lines[i];
+      let before = o.frames[i];
+      let after = o.frames[i+1];
+      return l is map && l.id == 'line-' + string(i) &&
+        before is map && after is map && money(l) &&
+        natural(o.physicalCounts[i+1], 100) &&
+        o.physicalCounts[i+1] == o.physicalCounts[i] + (l.kind == 'product' ? 1 : 0) &&
+        natural(o.prefixCOP[i+1], 1000000000) && o.prefixCOP[i+1] == o.prefixCOP[i] + l.netCOP &&
+        (l.kind == 'product' ? physical(o, i, before, after, l) :
+          l.kind == 'expense' && label(l.name) && category(l.categoryId) && keys(l, ['id','kind','name','categoryId','priceCOP','discountCOP','netCOP']) &&
+          before == after && !(l.id in o.movements));
+    }
+    // Per-index checks are generated; financial and physical prefix counts are verified at every step.
+    function checks0(o) { return (o.lines.size() <= 0 || line(o, 0)) &&
+        (o.lines.size() <= 1 || line(o, 1)) &&
+        (o.lines.size() <= 2 || line(o, 2)) &&
+        (o.lines.size() <= 3 || line(o, 3)) &&
+        (o.lines.size() <= 4 || line(o, 4)) &&
+        (o.lines.size() <= 5 || line(o, 5)) &&
+        (o.lines.size() <= 6 || line(o, 6)) &&
+        (o.lines.size() <= 7 || line(o, 7)) &&
+        (o.lines.size() <= 8 || line(o, 8)) &&
+        (o.lines.size() <= 9 || line(o, 9)); }
+    function checks1(o) { return (o.lines.size() <= 10 || line(o, 10)) &&
+        (o.lines.size() <= 11 || line(o, 11)) &&
+        (o.lines.size() <= 12 || line(o, 12)) &&
+        (o.lines.size() <= 13 || line(o, 13)) &&
+        (o.lines.size() <= 14 || line(o, 14)) &&
+        (o.lines.size() <= 15 || line(o, 15)) &&
+        (o.lines.size() <= 16 || line(o, 16)) &&
+        (o.lines.size() <= 17 || line(o, 17)) &&
+        (o.lines.size() <= 18 || line(o, 18)) &&
+        (o.lines.size() <= 19 || line(o, 19)); }
+    function checks2(o) { return (o.lines.size() <= 20 || line(o, 20)) &&
+        (o.lines.size() <= 21 || line(o, 21)) &&
+        (o.lines.size() <= 22 || line(o, 22)) &&
+        (o.lines.size() <= 23 || line(o, 23)) &&
+        (o.lines.size() <= 24 || line(o, 24)) &&
+        (o.lines.size() <= 25 || line(o, 25)) &&
+        (o.lines.size() <= 26 || line(o, 26)) &&
+        (o.lines.size() <= 27 || line(o, 27)) &&
+        (o.lines.size() <= 28 || line(o, 28)) &&
+        (o.lines.size() <= 29 || line(o, 29)); }
+    function checks3(o) { return (o.lines.size() <= 30 || line(o, 30)) &&
+        (o.lines.size() <= 31 || line(o, 31)) &&
+        (o.lines.size() <= 32 || line(o, 32)) &&
+        (o.lines.size() <= 33 || line(o, 33)) &&
+        (o.lines.size() <= 34 || line(o, 34)) &&
+        (o.lines.size() <= 35 || line(o, 35)) &&
+        (o.lines.size() <= 36 || line(o, 36)) &&
+        (o.lines.size() <= 37 || line(o, 37)) &&
+        (o.lines.size() <= 38 || line(o, 38)) &&
+        (o.lines.size() <= 39 || line(o, 39)); }
+    function checks4(o) { return (o.lines.size() <= 40 || line(o, 40)) &&
+        (o.lines.size() <= 41 || line(o, 41)) &&
+        (o.lines.size() <= 42 || line(o, 42)) &&
+        (o.lines.size() <= 43 || line(o, 43)) &&
+        (o.lines.size() <= 44 || line(o, 44)) &&
+        (o.lines.size() <= 45 || line(o, 45)) &&
+        (o.lines.size() <= 46 || line(o, 46)) &&
+        (o.lines.size() <= 47 || line(o, 47)) &&
+        (o.lines.size() <= 48 || line(o, 48)) &&
+        (o.lines.size() <= 49 || line(o, 49)); }
+    function checks5(o) { return (o.lines.size() <= 50 || line(o, 50)) &&
+        (o.lines.size() <= 51 || line(o, 51)) &&
+        (o.lines.size() <= 52 || line(o, 52)) &&
+        (o.lines.size() <= 53 || line(o, 53)) &&
+        (o.lines.size() <= 54 || line(o, 54)) &&
+        (o.lines.size() <= 55 || line(o, 55)) &&
+        (o.lines.size() <= 56 || line(o, 56)) &&
+        (o.lines.size() <= 57 || line(o, 57)) &&
+        (o.lines.size() <= 58 || line(o, 58)) &&
+        (o.lines.size() <= 59 || line(o, 59)); }
+    function checks6(o) { return (o.lines.size() <= 60 || line(o, 60)) &&
+        (o.lines.size() <= 61 || line(o, 61)) &&
+        (o.lines.size() <= 62 || line(o, 62)) &&
+        (o.lines.size() <= 63 || line(o, 63)) &&
+        (o.lines.size() <= 64 || line(o, 64)) &&
+        (o.lines.size() <= 65 || line(o, 65)) &&
+        (o.lines.size() <= 66 || line(o, 66)) &&
+        (o.lines.size() <= 67 || line(o, 67)) &&
+        (o.lines.size() <= 68 || line(o, 68)) &&
+        (o.lines.size() <= 69 || line(o, 69)); }
+    function checks7(o) { return (o.lines.size() <= 70 || line(o, 70)) &&
+        (o.lines.size() <= 71 || line(o, 71)) &&
+        (o.lines.size() <= 72 || line(o, 72)) &&
+        (o.lines.size() <= 73 || line(o, 73)) &&
+        (o.lines.size() <= 74 || line(o, 74)) &&
+        (o.lines.size() <= 75 || line(o, 75)) &&
+        (o.lines.size() <= 76 || line(o, 76)) &&
+        (o.lines.size() <= 77 || line(o, 77)) &&
+        (o.lines.size() <= 78 || line(o, 78)) &&
+        (o.lines.size() <= 79 || line(o, 79)); }
+    function checks8(o) { return (o.lines.size() <= 80 || line(o, 80)) &&
+        (o.lines.size() <= 81 || line(o, 81)) &&
+        (o.lines.size() <= 82 || line(o, 82)) &&
+        (o.lines.size() <= 83 || line(o, 83)) &&
+        (o.lines.size() <= 84 || line(o, 84)) &&
+        (o.lines.size() <= 85 || line(o, 85)) &&
+        (o.lines.size() <= 86 || line(o, 86)) &&
+        (o.lines.size() <= 87 || line(o, 87)) &&
+        (o.lines.size() <= 88 || line(o, 88)) &&
+        (o.lines.size() <= 89 || line(o, 89)); }
+    function checks9(o) { return (o.lines.size() <= 90 || line(o, 90)) &&
+        (o.lines.size() <= 91 || line(o, 91)) &&
+        (o.lines.size() <= 92 || line(o, 92)) &&
+        (o.lines.size() <= 93 || line(o, 93)) &&
+        (o.lines.size() <= 94 || line(o, 94)) &&
+        (o.lines.size() <= 95 || line(o, 95)) &&
+        (o.lines.size() <= 96 || line(o, 96)) &&
+        (o.lines.size() <= 97 || line(o, 97)) &&
+        (o.lines.size() <= 98 || line(o, 98)) &&
+        (o.lines.size() <= 99 || line(o, 99)); }
+    function checks(o) { return o.lines.size() == 1 ? line(o, 0) : (o.lines.size() <= 0 || checks0(o)) && (o.lines.size() <= 10 || checks1(o)) && (o.lines.size() <= 20 || checks2(o)) && (o.lines.size() <= 30 || checks3(o)) && (o.lines.size() <= 40 || checks4(o)) && (o.lines.size() <= 50 || checks5(o)) && (o.lines.size() <= 60 || checks6(o)) && (o.lines.size() <= 70 || checks7(o)) && (o.lines.size() <= 80 || checks8(o)) && (o.lines.size() <= 90 || checks9(o)); }
+    function purchase(o, old, next) {
+      return keys(o, ['schemaVersion','operationId','kind','beforeRevision','afterRevision','createdAt',
+          'purchaseDate','store','lines','movements','frames','prefixCOP','physicalCounts','totalPaidCOP']) &&
+        o.lines is list && o.lines.size() > 0 && o.lines.size() <= 100 &&
+        o.frames is list && o.frames.size() == o.lines.size()+1 &&
+        o.prefixCOP is list && o.prefixCOP.size() == o.lines.size()+1 && o.prefixCOP[0] == 0 &&
+        o.movements is map && o.physicalCounts is list && o.physicalCounts.size() == o.lines.size()+1 &&
+        o.physicalCounts[0] is int && o.physicalCounts[0] == 0 && o.prefixCOP[0] is int &&
+        o.movements.size() == o.physicalCounts[o.lines.size()] && natural(o.totalPaidCOP, 1000000000) &&
+        o.purchaseDate is timestamp && label(o.store) &&
+        o.frames[0] == old.products && o.frames[o.lines.size()] == next.products &&
+        o.totalPaidCOP == o.prefixCOP[o.lines.size()] &&
+        checks(o);
+    }
+    function adjustment(o, old, next) {
+      let p = old.products[o.productId];
+      let n = next.products[o.productId];
+      return keys(o, ['schemaVersion','operationId','kind','beforeRevision','afterRevision','createdAt',
+          'productId','expectedRevision','before','after']) &&
+        id(o.productId) && natural(o.expectedRevision, 1000000000) && o.expectedRevision == old.revision &&
+        product(n) && n.diff(p).affectedKeys().hasOnly(['quantityMilli','status']) &&
+        next.products.diff(old.products).affectedKeys().hasOnly([o.productId]) &&
+        balanceType(o.before, p) && balanceType(o.after, n) && o.before == balance(p) && o.after == balance(n);
+    }
+    function state(s) {
+      return keys(s, ['schemaVersion','revision','lastOperationId','updatedAt','products']) &&
+        s.schemaVersion is int && s.schemaVersion == 1 && natural(s.revision, 1000000000) &&
+        s.updatedAt == request.time && s.products is map;
+    }
+    function paired(o, old, next, operationId) {
+      return o.schemaVersion is int && o.schemaVersion == 1 && natural(o.beforeRevision, 1000000000) &&
+        natural(o.afterRevision, 1000000000) && o.operationId == operationId && id(operationId) &&
+        o.beforeRevision == old.revision && o.afterRevision == old.revision + 1 &&
+        next.revision == o.afterRevision && next.lastOperationId == operationId &&
+        o.createdAt == request.time;
+    }
+    match /users/{uid}/state/current {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && state(request.resource.data) && request.resource.data.revision == 0 &&
+        request.resource.data.products == {} && request.resource.data.lastOperationId == '';
+      // The fresh operation's create rule validates the complete transition. An existing op cannot authorize this write.
+      allow update: if owner(uid) && state(request.resource.data) && id(request.resource.data.lastOperationId) &&
+        !exists(/databases/$(database)/documents/users/$(uid)/operations/$(request.resource.data.lastOperationId)) &&
+        request.resource.data.revision == resource.data.revision + 1 &&
+        getAfter(/databases/$(database)/documents/users/$(uid)/operations/$(request.resource.data.lastOperationId)).data.afterRevision == request.resource.data.revision;
+      allow delete: if false;
+    }
+    match /users/{uid}/operations/{operationId} {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && validOperation(uid, operationId);
+      allow update, delete: if false;
+    }
+    function validOperation(uid, operationId) {
+      let old = get(/databases/$(database)/documents/users/$(uid)/state/current).data;
+      let next = getAfter(/databases/$(database)/documents/users/$(uid)/state/current).data;
+      let o = request.resource.data;
+      return paired(o, old, next, operationId) &&
+        (o.kind == 'purchase' ? purchase(o, old, next) : o.kind == 'stockAdjust' && adjustment(o, old, next));
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}
