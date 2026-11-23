@@ -18,7 +18,8 @@ test.beforeEach(async ({ page }) => {
     if (!['127.0.0.1', 'localhost'].includes(url.hostname)) {
       await route.abort(); throw new Error('NON_LOCAL_REQUEST_BLOCKED');
     }
-    if (['8386', '5205'].includes(url.port)) {
+    // 05C-1 permits inventory reads. Financial callables and all direct writes remain forbidden.
+    if (url.port === '5205' || (url.port === '8386' && /Write|Commit|:commit|:batchWrite/.test(url.pathname))) {
       await route.abort(); throw new Error('FINANCIAL_SERVICE_REQUEST_BLOCKED');
     }
     await route.continue();

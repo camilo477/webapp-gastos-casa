@@ -271,3 +271,6 @@ details[open] > summary .line-expand svg { transform: rotate(180deg); }
 .access-shell { max-width: 40rem; }
 .access-card { margin-bottom: 2rem; }
 .access-card p { overflow-wrap: anywhere; }
+/* Keep the approved form layout when fields are frozen during a trusted save. */
+.inventory-fields { border: 0; padding: 0; margin: 0; min-width: 0; display: contents; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

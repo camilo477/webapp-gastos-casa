@@ -12,6 +12,7 @@
     "dev:auth-test": "node scripts/auth-web.mjs auth-test",
     "firebase:auth:seed": "npm run build:server && node functions/scripts/seed-auth.mjs",
     "test:auth:emulator": "npm run build:server && node tests/firebase-auth/run.mjs",
+    "test:inventory:emulator": "npm run build:server && node tests/firebase-inventory/run.mjs",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",

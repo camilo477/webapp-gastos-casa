@@ -283,3 +283,34 @@ Regresión UI: `npm test`, `npm run test:e2e`; esta última incluye compra manua
 Para repetir 04C conservar su Node 20 histórico en una terminal separada y sus comandos originales `npm run test:firebase:trusted:unit` y `npm run test:firebase:trusted`. No convertir ese runtime en recomendación productiva ni modificar el laboratorio para admitir los contratos 04D. 04B queda como evidencia negativa; no es una puerta de aprobación de la nueva suite.
 
 Antes de un **futuro** despliegue: obtener autorización explícita para fase/recursos/presupuesto; aprobar DP y contratos pertinentes; probar nuevos esquemas y recuperación; crear configuración de staging separada e IAM mínimo; actualizar/auditar artefactos; configurar Auth/App Check/índices/reglas y controles económicos aprobados; revisar migración/rollback y demostración. Solo después se preparará un procedimiento concreto revisable para autorización final. El entry actual seguirá siendo local: no se «habilita producción» quitando sus guards. No existe ni se ejecutó un comando de despliegue en 05A.
+
+## Inventario React local — Fase 05C-1
+
+Esta sección actualiza exclusivamente el comportamiento del inventario del modo emulador; las secciones 05A/05B describen sus entregas históricas. No habilita Firestore real, facturación, despliegues, compras remotas ni decisiones DP pendientes.
+
+Con Node 24.22.3 y Java≥21, dependencias raíz y `functions/` instaladas:
+
+1. En una terminal: `npm run firebase:local:start`. Mantener Auth 9299, Firestore 8386 y Functions 5205 activos, solo en loopback.
+2. En otra: `npm run firebase:auth:seed`. Crea exclusivamente las cuentas ficticias publicadas en `tests/firebase-auth/fixtures.mjs`.
+3. Ejecutar `npm run dev:emulator` y abrir `http://127.0.0.1:5174/inventario`. Ingresar con la cuenta ficticia autorizada. El catálogo inicialmente vacío no se rellena con `src/data/seed.ts`.
+4. Añadir un producto ficticio con existencia inicial; comprobar «Producto guardado en el laboratorio local». Buscar/filtrar, editar nombre/categoría y probar Añadir cantidad, Registrar consumo o Establecer cuánto hay. En sencillo elegir el estado observado.
+5. Recargar, navegar, cerrar/reabrir pestaña o cerrar sesión y volver a ingresar. Los cambios confirmados siguen disponibles **mientras Firestore Emulator conserve sus datos**. Salir limpia las vistas y estados privados.
+6. Para probar concurrencia: abrir el mismo producto en dos pestañas, guardar en una y guardar en la otra. La segunda muestra conflicto. Volver sin cambiar, Actualizar productos, revisar el saldo y abrir un nuevo ajuste. No se sobrescribe silenciosamente una cantidad/version anterior.
+
+Para pruebas automáticas, detener los emuladores manuales y ejecutar `npm run test:inventory:emulator`. Prepara cuentas ficticias antes de las pruebas servidor con custom tokens, para no crear un UID sin el correo esperado por el fixture. Ejecuta el laboratorio 05A ampliado y Playwright; apaga los servicios al finalizar. Las pruebas generan catálogos ficticios de 100/500/1.000 productos mediante Admin solo en el proceso de preparación, nunca en React. No ejecutar simultáneamente suites que compartan puertos. `test:auth:emulator` conserva sus pruebas de autenticación y ahora permite lecturas locales de inventario, manteniendo bloqueados callables financieros y escrituras directas.
+
+### Lecturas, escrituras y aislamiento
+
+`main.tsx` carga el adaptador de inventario **solo** después de validar modo emulador y crear Authentication Emulator. Reutiliza su app con nombre fijo, comprueba proyecto y endpoint Auth y conecta explícitamente Firestore/Functions locales. `auth-test` no importa este adaptador; su archivo privado no se modifica. Demo no inicializa SDK ni hace solicitudes Firebase.
+
+Se usa el SDK oficial **Firestore Lite**, con consultas puntuales al servidor, sin IndexedDB, caché offline, cola de escrituras ni listeners. Se eligió Lite tras comprobar que WebChannel del SDK completo intenta cargar una imagen de diagnóstico externa cuando falla la red; ese intento fue bloqueado por la prueba, y Lite elimina ese transporte. No existe fallback remoto. Referencias oficiales: [Firestore Lite](https://firebase.google.com/docs/firestore/solutions/firestore-lite), [paginación con cursores](https://firebase.google.com/docs/firestore/query-data/query-cursors), [Functions Emulator](https://firebase.google.com/docs/emulator-suite/connect_functions).
+
+Lectura de `users/{uid}/products`, nunca del historial: lotes de hasta 100, cursor por ID y filtro de categoría en servidor. La búsqueda por fragmento, sin distinguir acentos, filtra cada lote de productos. Si quedan páginas, muestra Ver más productos y no anuncia ausencia definitiva. Puede recorrer todo el catálogo para encontrar un nombre: es una limitación explícita local, no un motor de búsqueda productivo. Las páginas no constituyen un snapshot global atómico; cada modificación comprueba la versión del producto. Se refresca al entrar, recuperar foco sin editor abierto, confirmar cambios o pulsar Actualizar productos.
+
+Toda modificación usa `mutateInventoryExperimental`, con `req.auth` verificado, UID local autorizado por servidor y reglas, validación cerrada, transacción y hash SHA-256 de intención. No se acepta UID del cuerpo. La versión empieza en 0 y aumenta con cada edición/ajuste; unidad y control no se modifican. El resultado se anuncia solo tras el acuse confirmado/ya confirmado. El registro de operación no financiera comparte la colección idempotente con el laboratorio histórico, sin total pagado. La interfaz no invoca los callables de compra ni modifica su estado demo con productos locales.
+
+El borrador/referencia del reintento vive únicamente en RAM. Si se pierde la respuesta, se congelan los campos y Reintentar guardado reenvía la misma intención/ID. No se promete cancelar una operación ya enviada. Se advierte al abandonar la ruta o recargar con un guardado pendiente. Cerrar la pestaña o salir de la cuenta puede perder esa referencia: antes de crear otra operación, revisar el inventario confirmado. No se implementa la política durable DP-06 ni borradores financieros persistentes.
+
+Los parámetros locales siguen siendo experimentales: cantidades ×1.000, enteros para unidad, máximo 1.000.000.000 en la representación escalada, bases unidad/kg/L, estados available/low/empty y categorías food/cleaning/service con etiquetas Alimentos/Limpieza/Servicios. El catálogo demo conserva sus categorías anteriores. No se aprueban DP-03/08/10, ubicaciones, fusión por nombre ni cambios de modo/base.
+
+La autorización en React sirve para la experiencia de uso; la frontera de datos sigue siendo servidor + reglas. Las escrituras cliente permanecen denegadas incluso al UID autorizado. Los errores autenticados de permiso/sesión invalidan el acceso local; no se muestran tokens ni errores internos. Producción continúa bloqueada y no se exportan/importan datos de emulador automáticamente.

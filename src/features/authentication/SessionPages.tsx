@@ -8,6 +8,7 @@ import { Header } from '../../components/Header';
 import { PageHeading } from '../../components/Surface';
 import { useRouteFocus } from '../../hooks/useRouteFocus';
 import { useSession } from '../../state/SessionContext';
+import { useLocalInventory } from '../../state/InventoryContext';
 
 function AccessLayout({ children }: { children: ReactNode }) {
   useRouteFocus();
@@ -80,11 +81,12 @@ export function LoginPage() {
 
 export function SessionActions() {
   const session = useSession();
+  const inventory = useLocalInventory(), location = useLocation();
   const [error, setError] = useState('');
   if (!session) return null;
   const label = session.service.options.mode === 'emulator' ? 'Prueba local de acceso' : 'Prueba de acceso autorizada';
   return <aside className="demo-mode" aria-label={label}>
-    <p><strong>{label}.</strong> Los datos de ejemplo no pertenecen a esta cuenta. Al salir se descartan los cambios de esta sesión.</p>
+    <p><strong>{label}.</strong> {inventory && location.pathname === '/inventario' ? 'Al salir, el inventario desaparece de esta pantalla. Los cambios confirmados siguen en el emulador mientras conserve sus datos.' : 'Los datos de ejemplo no pertenecen a esta cuenta. Al salir se descartan los cambios de esta sesión.'}</p>
     <Button variant="secondary" className="btn-small" onClick={() => { setError(''); void session.service.signOut().catch(cause => {
       setError(cause instanceof AuthenticationError ? cause.message : authenticationMessage(null));
     }); }}>Cerrar sesión</Button>

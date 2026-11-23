@@ -164,3 +164,50 @@ test('lookup after a truly successful confirmation and a fresh client reconciles
     assert.equal((await fresh.call('lookupOperation', { operationId: 'not-submitted' })).status, 'absent-at-server');
   } finally { await fresh.close(); }
 });
+
+// 05C-1: real local Auth + Functions + Firestore, using no React demo seed.
+const opening = (operationId = 'inventory-open', productId = 'inventory-p') => ({ schemaVersion:1,kind:'inventoryCreate',operationId,productId,
+  product:{name:'Arroz ficticio local',categoryId:'food',control:'exact',unit:'unidad',quantityMilli:2000} });
+const changeStock = (operationId, expectedVersion=0, value=1000, action='add') => ({schemaVersion:1,kind:'inventoryAdjust',operationId,productId:'inventory-p',expectedVersion,action,value});
+test('inventory callable opens nonfinancial stock and retries exactly once, including concurrent duplicate creation',async()=>{
+  await seed(0);
+  const results=await Promise.all([owner.call('mutateInventory',opening()),owner.call('mutateInventory',opening())]);
+  assert.deepEqual(results.map(r=>r.status).sort(),['already-confirmed','confirmed']);
+  assert.equal((await read('products','inventory-p')).quantityMilli,2000);
+  const operation=await read('operations','inventory-open'); assert.equal('totalPaidCOP' in operation,false);
+  assert.equal(operation.movements.length,1);
+  await assert.rejects(owner.call('mutateInventory',{...opening(),product:{...opening().product,name:'Otra prueba'}}),{code:'functions/already-exists'});
+});
+test('two concurrent inventory increments never overwrite: stale caller must refresh and deliberately retry',async()=>{
+  await seed(0); await owner.call('mutateInventory',opening());
+  const results=await Promise.allSettled(['increment-a','increment-b'].map(id=>owner.call('mutateInventory',changeStock(id))));
+  assert.equal(results.filter(r=>r.status==='fulfilled').length,1);
+  const stale=results.find(r=>r.status==='rejected'); assert.equal(stale.reason.code,'functions/failed-precondition');
+  assert.equal((await read('products','inventory-p')).quantityMilli,3000);
+  await owner.call('mutateInventory',changeStock('reviewed-increment',1));
+  assert.equal((await read('products','inventory-p')).quantityMilli,4000);
+  assert.equal((await read('products','inventory-p')).version,2);
+});
+test('inventory set/consume/edit/simple states preserve invariants and journal only confirmed operations',async()=>{
+  await seed(0); await owner.call('mutateInventory',opening());
+  await owner.call('mutateInventory',changeStock('consume',0,1000,'consume'));
+  await assert.rejects(owner.call('mutateInventory',changeStock('negative',1,2000,'consume')),{code:'functions/invalid-argument'});
+  await assert.rejects(owner.call('mutateInventory',changeStock('stale-set',0,9000,'set')),{code:'functions/failed-precondition'});
+  await owner.call('mutateInventory',changeStock('set',1,5000,'set'));
+  const edit={schemaVersion:1,kind:'inventoryEdit',operationId:'rename',productId:'inventory-p',expectedVersion:2,name:'Arroz renombrado ficticio',categoryId:'cleaning'};
+  await owner.call('mutateInventory',edit);
+  await assert.rejects(owner.call('mutateInventory',{...edit,operationId:'unit',expectedVersion:3,unit:'kg'}),{code:'functions/invalid-argument'});
+  assert.equal((await read('products','inventory-p')).quantityMilli,5000);
+  assert.equal((await read('products','inventory-p')).version,3);
+  const simple={...opening('simple-open','simple-p'),product:{name:'Jabón ficticio',categoryId:'cleaning',control:'simple',unit:'unidad',status:'available'}};
+  await owner.call('mutateInventory',simple);
+  for(const [version,status] of ['low','empty'].entries())await owner.call('mutateInventory',{...changeStock('simple-'+status,version,status,'set'),productId:'simple-p'});
+  assert.equal((await read('products','simple-p')).status,'empty');
+  for(const id of ['negative','stale-set','unit']) assert.equal(await read('operations',id),undefined);
+});
+test('inventory authorization is server enforced and strict commands reject client identity',async()=>{
+  await seed(0);
+  for(const actor of [anonymous,other]) await assert.rejects(actor.call('mutateInventory',opening()),e=>['functions/unauthenticated','functions/permission-denied'].includes(e.code));
+  await assert.rejects(owner.call('mutateInventory',{...opening(),uid:LOCAL.uid}),{code:'functions/invalid-argument'});
+  assert.equal((await getDocs(collection(owner.db,`users/${LOCAL.uid}/products`))).size,0);
+});

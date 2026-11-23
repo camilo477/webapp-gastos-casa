@@ -10,8 +10,14 @@ import { InventoryProductRow } from './InventoryProductRow';
 import { ProductForm } from './ProductForm';
 import { StockForm } from './StockForm';
 import { useStatusMessage } from '../../hooks/useStatusMessage';
+import { useLocalInventory } from '../../state/InventoryContext';
+import { LocalInventoryPage } from './LocalInventoryPage';
 
 export function InventoryPage() {
+  const inventory = useLocalInventory();
+  return inventory ? <LocalInventoryPage service={inventory.service}/> : <DemoInventoryPage/>;
+}
+function DemoInventoryPage() {
   const {state}=useDemo();const [query,setQuery]=useState(''),[category,setCategory]=useState('all');
   const {announce,statusNode}=useStatusMessage();
   const [editor,setEditor]=useState<{kind:'new'|'edit'|'stock';id?:string}|null>(null);

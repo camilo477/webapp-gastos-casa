@@ -29,7 +29,7 @@ Abrir `http://127.0.0.1:5173` o el puerto que anuncie Vite. Si las dependencias 
 - Mi lista: crear, añadir, cambiar cantidades, marcar/desmarcar, quitar y finalizar. Marcar no cambia inventario ni dinero.
 - Advertencia al abandonar un borrador con cambios, incluido Atrás dentro de la aplicación. No se recuperan borradores después de recargar.
 
-El modo demostración no inicializa Firebase ni requiere cuenta. En la **Fase 05B-1** se añade un modo separado de autenticación contra emuladores locales. En ambos modos, compras, inventario, gastos y lista siguen siendo ejemplos en memoria; no se envían al servidor. No hay OCR, service worker ni despliegue.
+El modo demostración no inicializa Firebase ni requiere cuenta. Desde **05C-1**, solo el inventario del modo emulador usa Firestore local y modificaciones mediante Functions locales. Compras, gastos, lista e Inicio conservan sus ejemplos independientes en memoria. `auth-test` conserva exclusivamente Authentication real autorizado: su inventario sigue siendo demostración. No hay OCR, service worker ni despliegue.
 
 ## Probar el acceso local — Fase 05B-1
 
@@ -40,11 +40,13 @@ Requiere Node **24.22.3**, Java≥21 y las dependencias de ambos paquetes. No re
 3. Ejecutar `npm run dev:emulator` y abrir `http://127.0.0.1:5174`.
 4. Ingresar con el fixture público `duena@example.test` y contraseña **solo ficticia** `Solo-local-05B1!`. No reutilizarla con ninguna cuenta real.
 
-`npm run dev` sigue abriendo el modo demostración sin cuenta (sin `.env` local que cambie el modo). El acceso no ofrece registro ni proveedores reales. Solo admite correos de prueba `@example.test` y autoriza el UID fijo del laboratorio. Los ejemplos mostrados no pertenecen a la cuenta.
+`npm run dev` sigue abriendo el modo demostración sin cuenta (sin `.env` local que cambie el modo). El acceso local no ofrece registro ni proveedores reales. Solo admite correos de prueba `@example.test` y autoriza el UID fijo del laboratorio. En `/inventario`, el catálogo local comienza vacío: añade productos ficticios y recarga para comprobar los cambios confirmados. Las demás pantallas conservan ejemplos separados.
 
 `npm run test:auth:emulator` inicia emuladores, prepara fixtures, ejecuta Playwright y apaga los servicios automáticamente; usar con los emuladores manuales detenidos. No importar/exportar bases. La [guía](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md) explica configuración, persistencia oficial de sesión y límites; el [informe 05B-1](docs/FASE_05B_1.md) recoge pruebas y decisiones pendientes. Staging y producción permanecen bloqueados.
 
 La **Fase 05B-2** prepara un adaptador Auth para un futuro proyecto real de pruebas, deshabilitado sin configuración y aprobación del propietario. Google y correo/contraseña se eligen explícitamente; producción y datos remotos siguen bloqueados. El asistente no ha creado proyectos/cuentas reales ni activado Firebase real. Consultar la [guía del propietario](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md) antes de usar el nuevo comando `dev:auth-test`; la selección del proveedor y su activación siguen pendientes. Los modos demo y emulador conservan sus comandos anteriores.
+
+En **05B-3** se validó correo/contraseña en el proyecto real autorizado por el propietario; su configuración permanece exclusivamente local e ignorada. **05C-1 no amplía esa autorización a Firestore ni Functions reales.** Para repetir la nueva integración completa, con los emuladores manuales detenidos: `npm run test:inventory:emulator` (Node 24, JDK≥21). Incluye las pruebas del servidor 05A y el recorrido React. [Resultados y límites 05C-1](docs/FASE_05C_1.md).
 
 ## Rutas
 
@@ -127,7 +129,7 @@ npm run test:server
 npm run test:firebase:local
 ```
 
-`npm run firebase:local:start` inicia Auth, Firestore y Functions en loopback; Ctrl+C los detiene. Solo `demo-mi-casa-05a`, sin credenciales ni recursos reales. React sigue en demo y rechaza modos remotos; no hay fallback a producción. Los contratos del ejecutor siguen siendo experimentales. [Guía y auditoría](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md).
+`npm run firebase:local:start` inicia Auth, Firestore y Functions en loopback; Ctrl+C los detiene. Solo `demo-mi-casa-05a`, sin credenciales ni recursos reales. La conexión React al inventario requiere `dev:emulator`; `dev` conserva demo. No hay fallback a producción. Los contratos del ejecutor siguen siendo experimentales. [Guía y auditoría](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md).
 
 ## Documentación y límites
 
@@ -182,7 +184,7 @@ git ls-remote origin refs/heads/main
 
 Comprobar que ambos SHA coinciden y que GitHub muestra los archivos esperados. Si hay cambios remotos, inspeccionarlos e integrarlos sin sobrescribir historia ni utilizar force push. El flujo permanente y la autorización de cierre de fases están en [AGENTS.md](AGENTS.md). GitHub no implica despliegue.
 
-`.gitignore` excluye dependencias, compilaciones, reportes, archivos de trabajo comprimidos, credenciales, datos privados y temporales de Firebase/OCR. Conserva `package-lock.json`, SVG y demás recursos legítimos. Un futuro `.env.example` solo puede contener nombres y valores ficticios; la configuración pública del SDK web de Firebase no equivale a una clave administrativa, pero Firebase sigue sin implementar.
+`.gitignore` excluye dependencias, compilaciones, reportes, archivos de trabajo comprimidos, credenciales, datos privados y temporales de Firebase/OCR. Conserva `package-lock.json`, SVG y demás recursos legítimos. `.env.example` solo contiene valores ficticios; la configuración pública del SDK web de Firebase no equivale a una clave administrativa. `.env.auth-test.local` nunca se publica.
 
 Las capturas e informes de `artifacts/` **no se publican**: son resultados regenerables con las pruebas. Por ello, los enlaces de evidencias de las entregas históricas se consultan localmente después de ejecutarlas; no son recursos necesarios para reconstruir la aplicación.
 

@@ -8,7 +8,7 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "npm run build && node --test tests/unit.test.mjs",
+    "test": "npm run build && node --test tests/unit.test.mjs tests/inventory-unit.test.mjs",
     "emulators": "npm run build && node scripts/emulators.mjs start",
     "test:emulator": "npm run build && node scripts/emulators.mjs test"
   },

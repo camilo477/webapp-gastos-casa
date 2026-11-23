@@ -1,6 +1,6 @@
 # Ejecutor local experimental 05A
 
-Paquete TypeScript independiente, **solo** `demo-mi-casa-05a`. No está conectado a React ni preparado para despliegue. DP-01 a DP-13 siguen pendientes; las reglas financieras conservan los parámetros de ensayo 04C, no implementan las propuestas 04D.
+Paquete TypeScript independiente, **solo** `demo-mi-casa-05a`. Desde 05C-1 conecta exclusivamente el inventario React en modo emulador; no está preparado para despliegue. DP-01 a DP-13 siguen pendientes en sus aspectos no aprobados; las reglas financieras conservan los parámetros de ensayo 04C, no implementan las propuestas 04D.
 
 Node **24.22.3** (`.nvmrc`), JDK≥21. Desde la raíz, con ese Node seleccionado:
 
@@ -18,3 +18,5 @@ npm run test:firebase:local
 Las auditorías son independientes: `npm --prefix functions audit` y `npm --prefix functions audit --omit=dev`. Hay hallazgos moderados pendientes en herramientas; cero en el grafo de ejecución no implica aprobación productiva.
 
 [Guía de configuración, seguridad y riesgos](../docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md). [Resultados ejecutados](../docs/FASE_05A.md).
+
+05C-1 añade `mutateInventoryExperimental`: crear con apertura no financiera, editar nombre/categoría y ajustar existencias/estado. El esquema cerrado prohíbe UID, cambios de unidad/control y campos financieros. Transacción de operación + producto; hash de intención, versiones estrictas, sin incremento repetido por reintentos. Reutiliza repositorio, autorización y reglas 05A sin abrir escrituras cliente. `npm run test:inventory:emulator` desde la raíz ejecuta servidor y navegador; [contrato y límites](../docs/FASE_05C_1.md).

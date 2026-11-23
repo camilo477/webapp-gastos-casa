@@ -29,11 +29,12 @@ export type Movement = {
   before: number | Status; after: number | Status; unit: BaseUnit;
 };
 export type StoredOperation = {
-  schemaVersion: 1; operationId: string; kind: Intent['kind']; intentHash: string;
+  schemaVersion: 1; operationId: string; kind: Intent['kind'] | 'inventoryCreate' | 'inventoryEdit' | 'inventoryAdjust'; intentHash: string;
   createdAt: TimeValue; productIds: string[]; movements: Movement[];
 } & (
   { kind: 'purchase'; date: string; store: string; lines: (Line & { netCOP: number })[]; totalPaidCOP: number }
   | { kind: 'stockAdjust'; productId: string; expectedVersion: number; after: number | Status }
+  | { kind: 'inventoryCreate' | 'inventoryEdit' | 'inventoryAdjust'; productId: string; command: unknown }
 );
 export type OperationReceipt = {
   status: 'confirmed' | 'already-confirmed'; operationId: string; intentHash: string; totalPaidCOP: number;
