@@ -21,10 +21,10 @@ const prototypeRoutes: RouteObject[]=[{element:<AppShell/>,children:[
   {path:'compras/nueva',element:<NewPurchasePage/>},{path:'compras/revisar',element:<ReviewPurchasePage/>},
   {path:'lista',element:<ShoppingListPage/>},{path:'gastos',element:<ExpensesPage/>},{path:'*',element:<NotFoundPage/>},
 ]}];
-export function createAppRoutes(emulator = false): RouteObject[] {
+export function createAppRoutes(authenticationRequired = false): RouteObject[] {
   return [
-    { path: '/acceso', element: emulator ? <LoginPage/> : <Navigate to="/" replace/> },
-    { element: emulator ? <RequireSession/> : <Outlet/>, children: prototypeRoutes },
+    { path: '/acceso', element: authenticationRequired ? <LoginPage/> : <Navigate to="/" replace/> },
+    { element: authenticationRequired ? <RequireSession/> : <Outlet/>, children: prototypeRoutes },
   ];
 }
 export const appRoutes = createAppRoutes();

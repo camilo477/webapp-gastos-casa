@@ -2,7 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
 import { App, createAppRoutes } from './app/App';
-import { readConfiguration, requireLocalAuthentication } from './application/configuration';
+import { readConfiguration, requireLocalAuthentication, requireTestAuthentication } from './application/configuration';
 import type { SessionPort } from './application/ports';
 import './styles/app.css';
 async function start() {
@@ -12,8 +12,12 @@ async function start() {
     requireLocalAuthentication(configuration, window.location.hostname);
     const { createEmulatorSession } = await import('./adapters/firebase/authentication');
     session = createEmulatorSession(configuration, window.location.hostname);
+  } else if (configuration.mode === 'auth-test') {
+    requireTestAuthentication(configuration, window.location.origin);
+    const { createAuthTestSession } = await import('./adapters/firebase/auth-test');
+    session = createAuthTestSession(configuration, window.location.origin);
   }
-  const router = createBrowserRouter(createAppRoutes(configuration.mode === 'emulator'));
+  const router = createBrowserRouter(createAppRoutes(configuration.mode !== 'demo'));
   createRoot(document.getElementById('root')!).render(<StrictMode><App router={router} session={session}/></StrictMode>);
   import.meta.hot?.dispose(() => { router.dispose(); void session?.dispose(); });
 }

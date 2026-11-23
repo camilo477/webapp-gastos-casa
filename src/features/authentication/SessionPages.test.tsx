@@ -4,13 +4,14 @@ import { createMemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 import { App, createAppRoutes } from '../../app/App';
 import { AuthenticationError } from '../../application/authentication-errors';
-import type { SessionPort, SessionState } from '../../application/ports';
+import type { SessionOptions, SessionPort, SessionState } from '../../application/ports';
 
-function setup(path = '/inventario', initial: SessionState = { status: 'checking', scope: 0 }) {
+function setup(path = '/inventario', initial: SessionState = { status: 'checking', scope: 0 }, options: SessionOptions = { mode: 'emulator', methods: ['password'] }) {
   let state = initial;
   const listeners = new Set<() => void>();
   const emit = (next: SessionState) => { state = next; for (const listener of listeners) listener(); };
   const service: SessionPort = {
+    options,
     current: () => state, subscribe: listener => { listeners.add(listener); return () => { listeners.delete(listener); }; },
     signIn: vi.fn(async () => { emit({ status: 'authenticated', scope: 1, session: { uid: 'demo-owner-05a' } }); }),
     signOut: vi.fn(async () => { emit({ status: 'anonymous', scope: state.scope + 1 }); }), recheck: vi.fn(), dispose: vi.fn(),
@@ -58,5 +59,27 @@ describe('session screens and route protection', () => {
     render(<App router={createMemoryRouter(createAppRoutes(), { initialEntries: ['/gastos'] })}/>);
     expect(await screen.findByRole('heading', { name: 'Mis gastos' })).toBeVisible();
     expect(screen.queryByRole('button', { name: 'Cerrar sesión' })).not.toBeInTheDocument();
+  });
+  it('presents only the explicitly selected Google method with accessible cancellation and retry', async () => {
+    const { user, service } = setup('/acceso', { status: 'anonymous', scope: 0 }, { mode: 'auth-test', methods: ['google'] });
+    expect(screen.queryByLabelText('Contraseña')).not.toBeInTheDocument();
+    expect(screen.getByText(/Prueba de acceso autorizada/)).toBeVisible();
+    vi.mocked(service.signIn).mockRejectedValueOnce(new AuthenticationError('El acceso con Google se canceló. Puedes volver a intentarlo cuando quieras.'));
+    await user.click(screen.getByRole('button', { name: 'Ingresar con Google' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('se canceló');
+    expect(service.signIn).toHaveBeenCalledWith({ method: 'google' });
+    await user.click(screen.getByRole('button', { name: 'Ingresar con Google' }));
+    expect(await screen.findByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
+    expect(screen.getByLabelText('Prueba de acceso autorizada')).toHaveTextContent('no pertenecen a esta cuenta');
+  });
+  it('keeps the selected password alternative and prevents duplicate Google requests', async () => {
+    const { user, service } = setup('/acceso', { status: 'anonymous', scope: 0 }, { mode: 'auth-test', methods: ['google', 'password'] });
+    expect(screen.getByLabelText('Contraseña')).toBeVisible();
+    let finish!: () => void;
+    vi.mocked(service.signIn).mockImplementationOnce(() => new Promise<void>(resolve => { finish = resolve; }));
+    await user.dblClick(screen.getByRole('button', { name: 'Ingresar con Google' }));
+    expect(service.signIn).toHaveBeenCalledOnce(); expect(screen.getAllByRole('button', { name: 'Ingresando…' }).every(button => button.hasAttribute('disabled'))).toBe(true);
+    await act(async () => { finish(); });
+    expect(screen.getByRole('button', { name: 'Ingresar con Google' })).toBeEnabled();
   });
 });

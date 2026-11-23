@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "dev:emulator": "node scripts/auth-web.mjs",
+    "dev:auth-test": "node scripts/auth-web.mjs auth-test",
     "firebase:auth:seed": "npm run build:server && node functions/scripts/seed-auth.mjs",
     "test:auth:emulator": "npm run build:server && node tests/firebase-auth/run.mjs",
     "typecheck": "tsc --noEmit",

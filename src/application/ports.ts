@@ -1,12 +1,14 @@
 // Application boundaries only. DTO generics await functional DP approval.
 // No Firebase SDK or React imports. Production providers and data persistence await approval.
 export type Session = { uid: string } | null;
+export type SessionOptions = Readonly<{ mode: 'emulator' | 'auth-test'; methods: readonly ('password' | 'google')[] }>;
 export type SessionState = { scope: number } & (
   { status: 'checking' } | { status: 'anonymous'; message?: string } |
   { status: 'authenticated'; session: NonNullable<Session> } | { status: 'error'; message: string }
 );
-export type SignInRequest = { method: 'password'; email: string; password: string };
+export type SignInRequest = { method: 'password'; email: string; password: string } | { method: 'google' };
 export interface SessionPort {
+  readonly options: SessionOptions;
   current(): SessionState;
   subscribe(listener: () => void): () => void;
   signIn(request: SignInRequest): Promise<void>;

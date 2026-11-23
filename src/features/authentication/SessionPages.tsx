@@ -36,6 +36,17 @@ export function LoginPage() {
     return <Navigate to={destination} replace/>;
   }
   const message = error || session.state.message;
+  const local = session.service.options.mode === 'emulator';
+  const methods = session.service.options.methods;
+  async function googleSignIn() {
+    if (submitting.current || !session) return;
+    submitting.current = true; setBusy(true); setError('');
+    try { await session.service.signIn({ method: 'google' }); }
+    catch (cause) {
+      setError(cause instanceof AuthenticationError ? cause.message : authenticationMessage(null));
+      requestAnimationFrame(() => errorRef.current?.focus());
+    } finally { submitting.current = false; setBusy(false); }
+  }
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting.current || !session) return;
@@ -53,13 +64,14 @@ export function LoginPage() {
   return <AccessLayout>
     <PageHeading title="Bienvenida a Mi Casa">Ingresa para probar el acceso a tus compras y productos.</PageHeading>
     <section className="panel stack access-card" aria-label="Inicio de sesión">
-      <p className="muted">Prueba local de acceso. Usa únicamente una cuenta ficticia.</p>
-      <form className="stack" onSubmit={submit} aria-busy={busy}>
-        <TextField label="Correo electrónico" name="email" type="email" help="Usa el correo ficticio de prueba terminado en @example.test." autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={busy}/>
+      <p className="muted">{local ? 'Prueba local de acceso. Usa únicamente una cuenta ficticia.' : 'Prueba de acceso autorizada. Ingresa con la cuenta acordada para esta prueba.'}</p>
+      {message && <p ref={errorRef} role="alert" tabIndex={-1} className="field-error">{message}</p>}
+      {methods.includes('google') && <Button className="btn-block" disabled={busy} onClick={() => { void googleSignIn(); }}>{busy ? 'Ingresando…' : 'Ingresar con Google'}</Button>}
+      {methods.includes('password') && <form className="stack" onSubmit={submit} aria-busy={busy}>
+        <TextField label="Correo electrónico" name="email" type="email" help={local ? 'Usa el correo ficticio de prueba terminado en @example.test.' : undefined} autoComplete="username" autoCapitalize="none" spellCheck={false} required disabled={busy}/>
         <TextField label="Contraseña" name="password" type="password" autoComplete="current-password" required disabled={busy}/>
-        {message && <p ref={errorRef} role="alert" tabIndex={-1} className="field-error">{message}</p>}
         <Button type="submit" className="btn-block" disabled={busy}>{busy ? 'Ingresando…' : 'Ingresar'}</Button>
-      </form>
+      </form>}
       {session.state.status === 'error' && <Button variant="secondary" onClick={() => { setError(''); void session.service.recheck(); }}>Volver a comprobar la sesión</Button>}
       <p className="muted small">Este acceso no guarda compras ni productos en la nube. El modo demostración se puede usar sin una cuenta.</p>
     </section>
@@ -70,8 +82,9 @@ export function SessionActions() {
   const session = useSession();
   const [error, setError] = useState('');
   if (!session) return null;
-  return <aside className="demo-mode" aria-label="Prueba local de acceso">
-    <p><strong>Prueba local de acceso.</strong> Los datos de ejemplo no pertenecen a esta cuenta. Al salir se descartan los cambios de esta sesión.</p>
+  const label = session.service.options.mode === 'emulator' ? 'Prueba local de acceso' : 'Prueba de acceso autorizada';
+  return <aside className="demo-mode" aria-label={label}>
+    <p><strong>{label}.</strong> Los datos de ejemplo no pertenecen a esta cuenta. Al salir se descartan los cambios de esta sesión.</p>
     <Button variant="secondary" className="btn-small" onClick={() => { setError(''); void session.service.signOut().catch(cause => {
       setError(cause instanceof AuthenticationError ? cause.message : authenticationMessage(null));
     }); }}>Cerrar sesión</Button>

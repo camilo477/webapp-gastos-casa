@@ -44,6 +44,8 @@ Requiere Node **24.22.3**, Java≥21 y las dependencias de ambos paquetes. No re
 
 `npm run test:auth:emulator` inicia emuladores, prepara fixtures, ejecuta Playwright y apaga los servicios automáticamente; usar con los emuladores manuales detenidos. No importar/exportar bases. La [guía](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md) explica configuración, persistencia oficial de sesión y límites; el [informe 05B-1](docs/FASE_05B_1.md) recoge pruebas y decisiones pendientes. Staging y producción permanecen bloqueados.
 
+La **Fase 05B-2** prepara un adaptador Auth para un futuro proyecto real de pruebas, deshabilitado sin configuración y aprobación del propietario. Google y correo/contraseña se eligen explícitamente; producción y datos remotos siguen bloqueados. El asistente no ha creado proyectos/cuentas reales ni activado Firebase real. Consultar la [guía del propietario](docs/architecture/FIREBASE_IMPLEMENTATION_GUIDE.md) antes de usar el nuevo comando `dev:auth-test`; la selección del proveedor y su activación siguen pendientes. Los modos demo y emulador conservan sus comandos anteriores.
+
 ## Rutas
 
 | Ruta | Pantalla |

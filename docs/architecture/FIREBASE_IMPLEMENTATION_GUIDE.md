@@ -1,6 +1,77 @@
-# Guía de implementación Firebase — Infraestructura 05A y Auth local 05B-1
+# Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
-## Estado actual: autenticación local 05B-1
+## Estado actual 05B-2: adaptador preparado, sin activación real
+
+Fecha: 23-11-2026. **El asistente no ha creado proyectos, activado proveedores, registrado cuentas reales ni realizado conexiones Auth reales.** Producción y servicios de datos siguen deshabilitados. Esta sección sustituye el estado actual de la sección histórica 05B-1 inferior únicamente en cuanto a preparación de Auth. DP-01/06/07 y las demás DP siguen pendientes en sus aspectos no aprobados.
+
+### Modos y condiciones de activación
+
+| Modo | Selección | Qué puede inicializar |
+| --- | --- | --- |
+| Demostración | Predeterminado, `VITE_APP_MODE=demo` | React y ejemplos en RAM; ningún SDK Firebase |
+| Emulador | `npm run dev:emulator` | Auth en `127.0.0.1:9299`, proyecto/UID ficticios 05A; sin servicios financieros desde React |
+| Prueba Auth real | Futuro `npm run dev:auth-test`, con archivo local completo **y aprobación explícita del propietario** | Solo SDK Auth del proyecto aprobado; ninguna base, Storage, Functions o compra remota |
+| Staging/producción | No admitidos | Error antes de inicializar SDK, sin fallback |
+
+El nuevo comando solicita el modo `auth-test`; no aporta aprobación, valores reales ni proveedores predeterminados. Sin archivo/configuración completos muestra un aviso y no inicializa servicios. **No ejecutarlo con cuentas/configuración reales sin autorización específica posterior.** El trabajo de esta fase solo ejecutó mocks, emuladores y una configuración negativa sin aprobación.
+
+La configuración exige ID de proyecto de pruebas terminado en `-test` (10–30 caracteres; no `demo`, `example` ni prefijo `prod`), `authDomain` exactamente `<projectId>.firebaseapp.com`, appId web válido, API key pública, un UID explícito no ficticio y proveedores elegidos. Debe incluir el origen exacto y el texto de aprobación vinculado al mismo proyecto. No se admiten variables de emuladores en ese modo, ni aprobación de proyecto real en emulador. El adaptador vuelve a validar la configuración/origen antes de `initializeApp`.
+
+Los formatos y coincidencias locales no verifican que una API key o appId pertenezcan realmente al proyecto: hay que copiarlos juntos desde la **misma aplicación web de la Console**. El SDK se configura únicamente con esos valores aprobados; al validar una sesión se comprueban además `aud`, `iss` y `sub` del token respecto al proyecto/identidad esperados. Esa comprobación del cliente no sustituye verificar el token y autorizar en un servidor confiable cuando se habilite alguno.
+
+### Guía manual para el propietario, solo tras autorizar el proyecto
+
+No entregar contraseñas, tokens, claves privadas ni archivos administrativos al asistente. Hacer las operaciones siguientes personalmente en Firebase Console con una cuenta administrativa autorizada. Para el acceso de la app, utilizar una cuenta dedicada de pruebas acordada, sin credenciales personales.
+
+1. **Crear un proyecto de pruebas en Spark.** En [Firebase Console](https://console.firebase.google.com/), elegir Añadir/Crear proyecto. Escoger un ID único terminado en `-test` y anotar ese ID, no solo el nombre visible. Mantener **Spark**; no vincular una cuenta Cloud Billing, añadir tarjeta ni aceptar una conversión a Blaze. Google Analytics no es necesario para esta prueba y puede dejarse desactivado. Si el proyecto elegido ya tiene facturación vinculada, no usarlo para este alcance. [Planes y vínculo con Cloud Billing](https://firebase.google.com/docs/projects/billing/firebase-pricing-plans).
+2. **Registrar una app web.** En la descripción del proyecto o Configuración del proyecto → General → Tus apps, elegir el icono Web (`</>`), asignar un nombre de pruebas y registrar. No marcar configuración de Hosting, crear bases ni desplegar nada. [Registro de app web](https://firebase.google.com/docs/web/setup).
+3. **Elegir y habilitar únicamente el proveedor autorizado.** En Authentication → Comenzar/Sign-in method, habilitar **Google** o **Correo/contraseña**, según la decisión expresa del propietario. Para Google, completar el nombre público del proyecto y correo de asistencia solicitados en Console. Para correo/contraseña no habilitar enlace por correo. No habilitar anónimo, teléfono/SMS, otros proveedores ni solicitar permisos Gmail/Drive/Contactos. Esta guía no elige proveedor ni aprueba ambos por defecto. [Google web](https://firebase.google.com/docs/auth/web/google-signin), [correo/contraseña](https://firebase.google.com/docs/auth/web/password-auth).
+4. **Consultar la configuración web.** En Configuración del proyecto → General → Tus apps → app web → Configuración del SDK/Config, copiar `projectId`, `apiKey`, `authDomain`, `appId` de esa misma app a un archivo local ignorado, nunca a un commit. La configuración web identifica el proyecto y no es una service account; restringir la API key a los usos/referentes apropiados para Auth siguiendo la Console, sin habilitar APIs adicionales. [API keys Firebase](https://firebase.google.com/docs/projects/api-keys).
+5. **Obtener el UID de una cuenta ya creada legítimamente.** En Authentication → Users/Usuarios, abrir la cuenta dedicada autorizada y copiar su **UID completo**, no su correo. Para correo/contraseña, el propietario puede aprovisionar esa cuenta de pruebas manualmente desde Añadir usuario, después de autorizarlo; el asistente no lo hace ni recibe su contraseña. Para Google, la cuenta debe estar ya aprovisionada/vinculada en ese proyecto. Si aún no existe, el primer acceso federado puede crear una cuenta Auth: autorizar y realizar ese aprovisionamiento aislado de forma supervisada usando el [flujo oficial](https://firebase.google.com/docs/auth/web/google-signin), volver a Usuarios y obtener su UID **antes de activar Mi Casa**. No quitar la allowlist, reutilizar el UID demo, habilitar una excepción para el primer login ni deducir un UID por correo. Si falta ese aprovisionamiento o su autorización, mantener la integración deshabilitada. [Gestión de usuarios](https://firebase.google.com/docs/auth/web/manage-users).
+6. **Revisar dominios y probar localmente.** En Authentication → Settings/Configuración → Authorized domains/Dominios autorizados, añadir `localhost` expresamente para el ensayo local y conservar el dominio Firebase de la app de pruebas. Añadir solo hostnames necesarios, sin esquema, rutas ni puertos en esa lista. Los proyectos nuevos ya no incluyen `localhost` por defecto; comprobarlo en Console. El origen de la app sí incluye esquema y puerto y debe coincidir con su configuración local. Abrir luego `http://localhost:5175/acceso` con el comando indicado abajo, únicamente tras autorizar el acceso. No se despliega la aplicación completa. [Dominios en proyectos nuevos](https://firebase.google.com/docs/auth/web/email-link-auth), [problemas comunes de Auth](https://firebase.google.com/docs/auth/faq-and-troubleshooting).
+
+### Archivo local y prueba futura
+
+Crear **`.env.auth-test.local`**, que ya está ignorado. No copiar aquí los hosts/UID del emulador. Los siguientes valores son ficticios y deliberadamente no activan el adaptador:
+
+```dotenv
+VITE_APP_MODE=auth-test
+VITE_FIREBASE_PROJECT_ID=example-auth-test
+VITE_FIREBASE_API_KEY=example-public-web-key-not-valid
+VITE_FIREBASE_AUTH_DOMAIN=example-auth-test.firebaseapp.com
+VITE_FIREBASE_APP_ID=1:1234567890:web:0123456789abcdef
+VITE_AUTH_TEST_OWNER_UID=REPLACE_WITH_AUTHORIZED_UID
+VITE_AUTH_TEST_PROVIDERS=google
+VITE_AUTH_TEST_GOOGLE_FLOW=popup
+VITE_AUTH_TEST_ORIGIN=http://localhost:5175
+VITE_AUTH_TEST_APPROVAL=
+```
+
+Reemplazar los valores por los de la Console solo después de su autorización. Proveedores permitidos: `google`, `password` o `google,password` sin espacios, duplicados ni métodos implícitos. Para activar, el propietario debe registrar expresamente la aprobación y escribir `VITE_AUTH_TEST_APPROVAL=owner-approved-auth-only:<projectId>` con **su mismo ID**. Ese texto es un control contra activación accidental, **no un secreto, firma ni autorización del servidor**. No escribirlo ni completarlo automáticamente en esta fase.
+
+Comprobar que no haya variables de emuladores heredadas en `.env`, `.env.local` o el entorno; un conflicto se rechaza. Con Node compatible seleccionado, después de instalar desde lockfile y una vez autorizada la activación, el propietario podrá ejecutar `npm run dev:auth-test`. El comando lee `.env.auth-test.local` y usa exclusivamente localhost:5175. `npm run dev` continúa en demo y `npm run dev:emulator` sigue usando 5174 y su configuración ficticia. No utilizar builds, hosts o puertos del emulador para validar un proyecto real.
+
+### Google, móvil y sesiones
+
+Se usan `GoogleAuthProvider` y las funciones oficiales del SDK; selección de cuenta explícita y scopes de identidad predeterminados, sin permisos adicionales ni extracción de OAuth access tokens. La UI muestra solo los métodos configurados, mantiene botones grandes y anuncia cancelaciones, popup bloqueado, conflicto de proveedor y red con lenguaje cotidiano. No hay fallback automático entre popup y redirección ni vinculación de cuentas por correo.
+
+**Localhost utiliza `popup`.** Iniciarlo pulsando el botón, permitir la ventana de acceso y usar un navegador normal si un navegador integrado la bloquea. No pedir a la usuaria desactivar protecciones de privacidad. Google recomienda redirección en móvil, pero el SDK necesita un auxiliar compatible con las restricciones de almacenamiento de los navegadores. Por eso `redirect` solo se admite cuando el origen autorizado sea `https://<projectId>.firebaseapp.com`, igual al `authDomain`. Se restaura con `getRedirectResult` antes de abrir rutas; un error limpia la identidad parcial antes de volver a observar sesiones. Preparar esa variante **no despliega Hosting**: servir allí la app requeriría autorización aparte, fuera de esta fase. No se ha probado Google real ni Safari/móviles reales; popup local y redirección preparada requieren validación manual posterior. [Recomendaciones oficiales para redirección y alternativa popup](https://firebase.google.com/docs/auth/web/redirect-best-practices).
+
+El controlador compartido conserva comprobación inicial, revalidación/expiración, logout inmediato, descarte de respuestas obsoletas y reinicio de ejemplos al cambiar identidad. La instancia real de pruebas se nombra por proyecto y se separa de la app del emulador; el SDK guarda sus tokens con persistencia oficial, sin contraseña. La cuenta autenticada sigue viendo **ejemplos ficticios identificados**, no inventario guardado en su cuenta. No se cargan ni migran datos a una base. Cerrar sesión limpia los ejemplos y la sesión activa del SDK; no borra identidades de otros proyectos/orígenes ni revoca todas las sesiones remotas de Google.
+
+### Barreras confiables y condición previa a servicios de datos
+
+`security/auth-test.firestore.rules` es un artefacto **no desplegado**, sin UID real: deniega todas las lecturas y escrituras incluso al propietario. Se verifica en emulador contra anónimo, UID configurado ficticio, UID demo y otro UID. No se crea Firestore para aplicarlo en esta fase. El servidor actual mantiene `requireLocal`: rechaza configuración de cualquier proyecto real antes de inicializar Admin. React no importa Firestore, Functions ni Admin. Así, preparar el acceso UI no habilita servicios financieros ni depende de esconder botones para proteger datos.
+
+Si en otra fase se autorizan servicios, configurar administrativamente el **mismo UID real** en el servidor y las reglas correspondientes, en configuración ignorada/administrada ajena a Vite. El servidor deberá verificar firma, caducidad y proyecto emisor mediante Auth/Admin, después comparar UID con su configuración, antes del repositorio; reglas deberán autorizar por `request.auth.uid` y ruta, nunca por email o UID del cuerpo. No abrir lecturas/escrituras con una aprobación del frontend. Los clientes no pueden escribir finanzas directamente y Admin omite reglas: la autorización del servidor es obligatoria. No se implementan ni despliegan esos servicios aquí.
+
+No hay alta pública UI, pero Firebase Auth permite altas por API y Google puede crear el usuario en su primer acceso. Rechazar su UID en la app no elimina la cuenta Auth ni bloquea esos endpoints. Resolver el significado de registro cerrado, vinculación, recuperación, restricciones de autoservicio y sus costos en DP-01, sin activar Identity Platform/Blaze ahora.
+
+Para regresar a las pruebas sin servicios reales: detener el servidor de pruebas y volver a `npm run dev` o `npm run dev:emulator`; no cambiar de modo en caliente ni reenviar datos. Revisar siempre `git status` antes de publicar: nunca añadir `.env.auth-test.local`, configuración personal, tokens o cuentas al índice.
+
+Los resultados y límites de esta preparación están en [FASE_05B_2](../FASE_05B_2.md). Las secciones siguientes conservan la evidencia histórica.
+
+## Estado histórico: autenticación local 05B-1
 
 Actualización: 23-11-2026. Solo está autorizado **Firebase Authentication Emulator desde React**. Staging/producción y los adaptadores de datos del frontend permanecen bloqueados. La sección 05A inferior describe la infraestructura original; la excepción actual es el adaptador de sesión documentado aquí. DP-01 a DP-13 conservan los aspectos pendientes. No se inicia 05B-2.
 

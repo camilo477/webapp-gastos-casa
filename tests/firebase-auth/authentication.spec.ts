@@ -222,3 +222,13 @@ test('keyboard access, focus, labels and automated accessibility checks', async 
   await page.keyboard.press('Enter'); await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
+
+test('unapproved real-test configuration never imports the adapter or contacts real services', async ({ page }) => {
+  const requests: string[] = [];
+  page.on('request', request => requests.push(request.url()));
+  await page.goto('http://localhost:5175/inventario');
+  await expect(page.getByRole('alert')).toContainText('Revisa la configuración local');
+  expect(requests.every(url => new URL(url).hostname === 'localhost' && new URL(url).port === '5175')).toBe(true);
+  expect(requests.some(url => /adapters\/firebase|firebase_auth|firebase_app/.test(url))).toBe(false);
+  await expect(page.getByRole('heading', { name: 'Mi inventario' })).toHaveCount(0);
+});

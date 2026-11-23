@@ -13,6 +13,16 @@ export function authenticationMessage(error: unknown): string {
       return 'Hubo varios intentos. Espera un momento y vuelve a intentarlo.';
     case 'auth/unauthorized-local-user':
       return 'Esta cuenta no tiene acceso. Utiliza la cuenta de prueba autorizada.';
+    case 'auth/unauthorized-user':
+      return 'Esta cuenta no tiene acceso. Ingresa con la cuenta autorizada para esta prueba.';
+    case 'auth/popup-closed-by-user': case 'auth/cancelled-popup-request': case 'auth/redirect-cancelled-by-user':
+      return 'El acceso con Google se canceló. Puedes volver a intentarlo cuando quieras.';
+    case 'auth/popup-blocked': case 'auth/operation-not-supported-in-this-environment':
+      return 'No pudimos abrir Google. Permite las ventanas emergentes o abre Mi Casa en tu navegador habitual.';
+    case 'auth/unauthorized-domain': case 'auth/operation-not-allowed': case 'auth/method-not-enabled':
+      return 'Esta forma de ingresar todavía no está disponible. Pide ayuda a quien preparó el acceso.';
+    case 'auth/account-exists-with-different-credential': case 'auth/credential-already-in-use':
+      return 'Esta cuenta utiliza otra forma de ingreso. Usa la que ya tenías o pide ayuda para recuperar el acceso.';
     case 'auth/local-fixture-required':
       return 'Utiliza únicamente el correo ficticio de prueba terminado en @example.test.';
     case 'auth/web-storage-unsupported':
