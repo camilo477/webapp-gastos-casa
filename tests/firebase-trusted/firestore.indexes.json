@@ -1,0 +1,11 @@
+{
+  "indexes": [{ "collectionGroup": "operations", "queryScope": "COLLECTION", "fields": [
+    { "fieldPath": "kind", "order": "ASCENDING" },
+    { "fieldPath": "productIds", "arrayConfig": "CONTAINS" },
+    { "fieldPath": "date", "order": "DESCENDING" }
+  ] }],
+  "fieldOverrides": [
+    { "collectionGroup": "operations", "fieldPath": "lines", "indexes": [] },
+    { "collectionGroup": "operations", "fieldPath": "movements", "indexes": [] }
+  ]
+}

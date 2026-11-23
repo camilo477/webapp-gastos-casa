@@ -80,6 +80,7 @@ id_rsa
 id_ed25519
 
 # Firebase futuro: cachés y exportaciones, no configuración pública/rules
+.runtimeconfig.json
 .firebase/
 .emulator/
 firebase-debug*

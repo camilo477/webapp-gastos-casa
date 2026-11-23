@@ -77,3 +77,46 @@ Medir antes de aprobar: tamaño Firestore real, catálogo de nombres extensos, �
 Reconsiderar Blaze al necesitar superar cuotas, backend confiable/Functions, SMS, backups/PITR/TTL administrados u otros servicios que requieran facturación. Los límites de documento/reglas no desaparecen al pagar; Blaze no es una solución automática para B. Presupuestos y alertas no son un límite duro de gasto. No se habilitarán pagos ni servicios en 04A.
 
 Las referencias actuales distinguen transformaciones por documento de número de documentos escritos: la cifra 500 en la tabla de cuotas es de **transformaciones de campos en un documento**, no una prueba de que nuestra compra sea segura por tener menos de 500 escrituras. Verificar el SDK elegido, tamaño de solicitud y límites vigentes en la prueba técnica; el prototipo todavía no depende del SDK Firebase.
+
+## Extensión 04C — ejecutor confiable local (22-11-2026)
+
+Esta sección añade la estimación de la prueba autorizada 04C; las tablas anteriores conservan los supuestos históricos del candidato B. **No autoriza Blaze ni aprueba decisiones pendientes.** [Arquitectura y límites](TRUSTED_EXECUTOR.md), [resultados medidos](../FASE_04C.md).
+
+### Modelo de consumo
+
+M compras al mes, N líneas físicas de productos distintos ya existentes, D=N. Cada confirmación hace una invocación Functions, D+1 lecturas transaccionales y D+1 escrituras: productos independientes y compra/operación con movimientos embebidos. No añade un documento por línea o movimiento ni otro gasto. Sin reintentos en la base de la tabla. Productos nuevos tienen el mismo número de lecturas solicitadas/escrituras, aunque las lecturas encuentren documentos ausentes. Cincuenta repeticiones de un producto reducen D a uno.
+
+| Compras/mes | Artículos/compra | Invocaciones | Lecturas | Escrituras | CPU-s / GiB-s supuestos | Costo bruto de estos componentes, USD/mes |
+| ---: | ---: | ---: | ---: | ---: | --- | ---: |
+| 10 | 50 | 10 | 510 | 510 | 10 / 2,5 | 0,00086225 |
+| 30 | 50 | 30 | 1.530 | 1.530 | 30 / 7,5 | 0,00258675 |
+| 10 | 100 | 10 | 1.010 | 1.010 | 10 / 2,5 | 0,00146225 |
+| 30 | 100 | 30 | 3.030 | 3.030 | 30 / 7,5 | 0,00438675 |
+
+Ejemplo orientativo en `us-central1`, por petición, sin descuentos/cuota gratuita: CPU 0,000024 USD/vCPU-s; memoria 0,0000025 USD/GiB-s; peticiones 0,40 USD/millón. Se supone **1 segundo facturable, 1 vCPU y 256 MiB por invocación**; no se deduce ese segundo de la latencia del emulador. [Tarifas de Cloud Run por petición](https://cloud.google.com/run/pricing). Firestore regional: 0,03 USD/100.000 lecturas y 0,09 USD/100.000 escrituras. [Tarifas Firestore por región](https://cloud.google.com/firestore/pricing). Fórmula: `M*(0,000024 + 0,25*0,0000025 + 0,40/1000000) + M*(D+1)*(0,03+0,09)/100000`.
+
+Las cifras son el componente marginal de confirmar, **no un presupuesto total ni una garantía de factura menor de un centavo**. No incluyen arranque/apagado, Cloud Build, imágenes de contenedor/Artifact Registry, red, almacenamiento/índices, logging, impuestos, conversión a COP, otros proyectos o abuso. Una región distinta, duración mayor o CPU/configuración diferente cambia el cálculo. No se eligió una región de producción.
+
+### Cuotas gratuitas y servicios auxiliares
+
+El nivel gratuito por petición de Cloud Run contempla 2 millones de peticiones, 180.000 vCPU-s y 360.000 GiB-s al mes, compartidos por cuenta de facturación. Los cuatro escenarios de confirmación quedan muy por debajo; podrían tener componente incremental de cómputo cero si queda cuota elegible. No se suma automáticamente la cuota histórica de Functions 1.ª generación a la de 2.ª generación. [Cloud Run pricing](https://cloud.google.com/run/pricing).
+
+Firestore mantiene 50.000 lecturas/día, 20.000 escrituras/día, 1 GiB almacenado y 10 GiB de salida/mes para la base elegible. Aun concentrando las 30 compras de 100 distintos en un día, las 3.030 escrituras/lecturas de confirmación no las agotan por sí solas. [Cuotas oficiales](https://firebase.google.com/docs/firestore/quotas). No es una reserva exclusiva: otros usos comparten cuotas.
+
+Añadir al plan real:
+
+- Cada consulta de resultado: una invocación y una lectura. Reenviar una intención ya confirmada: una invocación, una lectura y cero escrituras. El rechazo de un ID con contenido distinto consume invocación/lectura; un error detectado antes de transacción no lee documentos, pero consume ejecución.
+- Los reintentos por contención vuelven a leer; las escrituras comprometidas siguen siendo D+1. Esta ejecución observó cero reintentos de callback en los escenarios medidos, sin garantizarlo en producción.
+- Inventario normalizado: abrir todo un catálogo P cuesta P lecturas, no una. Sesenta aperturas mensuales de P=1.000 sumarían 60.000 lecturas/mes repartidas entre días, más transferencia. La implementación futura deberá decidir carga, caché, paginación y listeners.
+- Diez consultas completas del mes sumarían hasta 10M lecturas de compras, más posibles entradas de índice según consulta. Historial de precios descarga compras, no solo sus líneas coincidentes. Estado o reportes no se descargan al confirmar una compra normal.
+- La operación de 100 líneas del ensayo ocupa 42.856 bytes por fórmula, y la de 50 ocupa 21.504: 30 compras añadirían aproximadamente 1,23/0,62 MiB de datos canónicos mensuales, antes de índices y metadatos. No hay testigos del catálogo completo ni fotografías.
+
+### Blaze, controles y límites de gasto
+
+Desplegar Functions requiere Blaze y cuenta de facturación; la emulación no los requiere. Cloud Build y Artifact Registry pueden producir costos independientes de las invocaciones. La documentación describe 500 MB gratuitos iniciales de Artifact Registry, con cobro posterior. [FAQ oficial de Functions](https://firebase.google.com/docs/functions/faq-and-troubleshooting). En esta fase no se desplegó, no se creó cuenta/proyecto y no se activaron servicios de pago.
+
+Configuración experimental declarada: `minInstances:0`, `maxInstances:2`, concurrencia 8, 256 MiB, 1 CPU y timeout 60 s **por función**. Evita una propuesta con instancias mínimas siempre activas, pero el emulador no prueba escalado ni límites de costo. Máximos de instancias/concurrencia no son un tope monetario mensual. Deben evaluarse autenticación/UID, App Check (no exigido en el laboratorio), límites de payload, protección de abuso/cuotas, IAM y alertas; incluso peticiones rechazadas por la lógica pueden consumir recursos. [Administración de Functions](https://firebase.google.com/docs/functions/manage-functions).
+
+A fecha de consulta existen **spend caps en Preview** para Cloud Functions for Firebase, entre algunos servicios elegibles; Firestore no aparece en esa lista. Pueden pausar el servicio al alcanzar un presupuesto mensual. No son hard caps: el retraso de medición/enforcement puede generar exceso facturable, y el servicio vuelve a habilitarse el mes siguiente. Las alertas de presupuesto por sí solas no pausan servicios. [Spend caps oficiales y limitaciones](https://firebase.google.com/docs/projects/billing/spend-caps). No se configuró ningún presupuesto, alerta o cap. Una eventual pausa debe conservar incertidumbre e identidad de operación, sin provocar nuevas compras al reintentar.
+
+Antes de aprobar producción se requiere una decisión económica explícita, un runtime soportado, validación de cuotas/índices/región, políticas de limpieza de artefactos y una prueba controlada de facturación autorizada. El laboratorio demuestra corrección local, no costo cero ni disponibilidad ilimitada.
