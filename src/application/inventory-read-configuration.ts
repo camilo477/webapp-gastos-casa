@@ -1,7 +1,8 @@
 import { ConfigurationError, requireTestAuthentication, type AuthTestConfiguration } from './configuration';
+import { CONTRACT } from '@mi-casa/inventory-contract';
 
 export const INVENTORY_READ_PROJECT = 'mi-casa-camilo-test';
-export const INVENTORY_READ_CONTRACT = 'experimental-05c1';
+export const INVENTORY_READ_CONTRACT = CONTRACT;
 export type InventoryReadConfiguration = Readonly<{
   projectId: string; databaseId: '(default)'; ownerUid: string; contract: typeof INVENTORY_READ_CONTRACT;
 }>;

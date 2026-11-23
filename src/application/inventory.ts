@@ -3,7 +3,7 @@ import { DomainError } from '../domain/validation';
 
 export const LOCAL_CATEGORIES = { food: 'Alimentos', cleaning: 'Limpieza', service: 'Servicios' } as const;
 export type CategoryId = keyof typeof LOCAL_CATEGORIES;
-export type InventoryProduct = Product & { version: number; updatedAtMillis: number };
+export type InventoryProduct = Product & { version: number; updatedAtMillis: number; presentation?:string|null };
 type Common = { schemaVersion: 1; operationId: string; productId: string };
 export type InventoryCommand = Common & (
   { kind: 'inventoryCreate'; product: { name: string; categoryId: CategoryId; unit: Product['unit'] } &

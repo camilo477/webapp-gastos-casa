@@ -4,18 +4,24 @@ import { createBrowserRouter } from 'react-router';
 import { App, createAppRoutes } from './app/App';
 import { readConfiguration, requireLocalAuthentication, requireTestAuthentication } from './application/configuration';
 import type { SessionPort } from './application/ports';
-import type { LocalInventoryPort } from './application/inventory';
+import { inventoryProfile, type InventoryService } from './application/inventory-candidate';
 import './styles/app.css';
 async function start() {
   const configuration = readConfiguration(import.meta.env);
+  const profile=inventoryProfile(configuration,import.meta.env);
   let session: SessionPort | undefined;
-  let inventory: LocalInventoryPort | undefined;
+  let inventory: InventoryService | undefined;
   if (configuration.mode === 'emulator') {
     requireLocalAuthentication(configuration, window.location.hostname);
     const { createEmulatorSession } = await import('./adapters/firebase/authentication');
     session = createEmulatorSession(configuration, window.location.hostname);
-    const { createEmulatorInventory } = await import('./adapters/firebase/inventory');
-    inventory = createEmulatorInventory(configuration, window.location.hostname);
+    if(profile==='legacy'){
+      const {createEmulatorInventory}=await import('./adapters/firebase/inventory');
+      inventory=createEmulatorInventory(configuration,window.location.hostname);
+    }else{
+      const {createCandidateInventory}=await import('./adapters/firebase/inventory-candidate');
+      inventory=createCandidateInventory(configuration,window.location.hostname);
+    }
   } else if (configuration.mode === 'auth-test') {
     requireTestAuthentication(configuration, window.location.origin);
     const { createAuthTestSession } = await import('./adapters/firebase/auth-test');

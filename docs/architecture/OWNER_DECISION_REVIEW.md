@@ -42,3 +42,5 @@ Para cada DP el propietario puede responder **aprobar propuesta**, **aprobar con
 Esta tabla no contiene una aprobación implícita de Node/SDK, Firebase real, Blaze, IAM, OCR, persistencia o despliegue. Su entrega y publicación solo cierran la documentación 04D.
 
 En 05C-2 se prepara una [revisión concreta de inventario](INVENTORY_CONTRACT_REVIEW.md) para DP-03/07/08/10: unidades y conversiones, estados aproximados, siete categorías sugeridas y tratamiento de duplicados. Es una propuesta adicional; no cambia las aprobaciones ni implementa una migración del laboratorio 05C-1. La [región y preparación de Firestore](FIRESTORE_READ_PREPARATION.md) también requieren decisiones y autorización posteriores separadas.
+
+En **05C-3** se ensaya el [candidato consolidado de inventario](CONSOLIDATED_INVENTORY_CONTRACT.md), con esquema 2 y una sola versión desde 1. La evidencia local no aprueba la elección de versión única, categorías, defaults, precisión, sugerencias, migración o contratos financieros; esas respuestas siguen requiriendo confirmación de DP-03/07/08/10 y demás decisiones afectadas. No se registró aprobación productiva.

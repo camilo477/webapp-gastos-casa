@@ -17,6 +17,7 @@ build/
 .turbo/
 *.tsbuildinfo
 /functions/lib/
+/functions/packages/inventory-contract/lib/
 
 # Resultados generados de pruebas (los iconos/recursos de public/ sí se versionan)
 coverage/

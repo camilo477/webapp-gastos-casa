@@ -15,6 +15,8 @@ El servidor garantiza coherencia del contrato y de los cálculos, no autenticida
 
 ## 2. Tipos básicos, producto y existencia
 
+**Revisión local 05C-3:** los tipos de inventario de esta sección quedan como propuesta histórica. El único candidato implementado es el [contrato consolidado schemaVersion=2](CONSOLIDATED_INVENTORY_CONTRACT.md), con una versión de registro, presentación y siete categorías. Sus diferencias están documentadas y no se aprueban unilateralmente. Los tipos financieros siguientes siguen pendientes y deberán adaptar sus referencias/versiones antes de usar ese inventario; no se implementa aquí una compra remota.
+
 Notación documental autocontenida; `ServerTime` viaja como ISO UTC validado y se persiste como Timestamp. Versiones de metadatos y stock son independientes y comienzan en 1. Campos `null` tienen significado explícito; no se usan `undefined`, objetos SDK, URLs, Blob ni valores no finitos en el contrato de red.
 
 ```ts

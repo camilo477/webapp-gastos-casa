@@ -1,5 +1,15 @@
 # Guía Firebase — Infraestructura local y preparación de Auth de pruebas
 
+## Consolidación 05C-3: un candidato local, sin activación real
+
+El [contrato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md) se prueba con esquema 2, presentación, categorías candidatas y una versión de registro. Es el único candidato nuevo; los parsers/ejecutores anteriores se conservan como compatibilidad histórica explícita. Ninguna DP se convierte en aprobada.
+
+`dev:emulator` usa el candidato. `dev:emulator:legacy` conserva el laboratorio 05C-1 y sus pruebas sin reinterpretar datos. Si existen documentos anteriores, se informa la incompatibilidad: no hay migración automática, cambio de categoría por suposición o borrado. El paquete interno compartido compila antes de dev/tests/build y sus outputs quedan ignorados. UI y servidor usan las mismas validaciones/conversiones.
+
+`test:inventory:candidate` cubre Auth/Firestore/Functions Emulator y React con cuentas ficticias. Mantener regresiones `test:inventory:emulator`, `test:auth:emulator` y `test:inventory:read` en ejecuciones separadas. El lector futuro ahora exige `inventory-candidate-v1`, pero `requireRealInventoryReadRelease` continúa bloqueándolo antes del SDK y main no conecta datos reales en auth-test. `.env.auth-test.local` y la autenticación real no se modifican.
+
+[Resultados y límites 05C-3](../FASE_05C_3.md). El [plan de migración](CONSOLIDATED_INVENTORY_CONTRACT.md#migración-propuesta-no-ejecutada) solo ofrece una vista previa sin IO y requiere aprobaciones/ejecutor específico posteriores. No crear Firestore, vincular facturación, desplegar o implementar compras financieras remotas. Las secciones de fases anteriores describen sus entregas históricas.
+
 ## Preparación 05C-2: futura lectura Firestore, sin conexión real
 
 El inventario local 05C-1 sigue funcionando. La nueva preparación añade un puerto **solo lectura**, adaptador Firestore Lite probado con mocks/emuladores y [reglas candidatas](../../security/inventory-read.firestore.rules) basadas en una ACL administrativa privada. El UID real no figura en reglas ni archivos públicos; anónimo, otras identidades, escrituras y rutas no previstas permanecen denegados. Las reglas candidatas no se desplegaron y no sustituyen el artefacto deny-all existente.

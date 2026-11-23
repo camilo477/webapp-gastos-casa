@@ -3,11 +3,11 @@ import { authTestFixture } from '../test/auth-test-fixture';
 import { INVENTORY_READ_PROJECT, prepareInventoryReadConfiguration, requireRealInventoryReadRelease } from './inventory-read-configuration';
 
 const auth = { ...authTestFixture, projectId: INVENTORY_READ_PROJECT, authDomain: `${INVENTORY_READ_PROJECT}.firebaseapp.com`, approval: `owner-approved-auth-only:${INVENTORY_READ_PROJECT}` };
-const env = { VITE_FIRESTORE_READ_DATABASE: '(default)', VITE_FIRESTORE_READ_CONTRACT: 'experimental-05c1', VITE_FIRESTORE_READ_APPROVAL: `owner-approved-firestore-read-only:${INVENTORY_READ_PROJECT}:(default)` };
+const env = { VITE_FIRESTORE_READ_DATABASE: '(default)', VITE_FIRESTORE_READ_CONTRACT: 'inventory-candidate-v1', VITE_FIRESTORE_READ_APPROVAL: `owner-approved-firestore-read-only:${INVENTORY_READ_PROJECT}:(default)` };
 describe('offline preparation of future inventory reads',()=>{
-  it('requires a separate project-bound approval and the explicit experimental schema/database',()=>{
-    expect(prepareInventoryReadConfiguration(auth,env,auth.authorizedOrigin)).toEqual({projectId:INVENTORY_READ_PROJECT,databaseId:'(default)',ownerUid:authTestFixture.ownerUid,contract:'experimental-05c1'});
-    for(const patch of [{VITE_FIRESTORE_READ_APPROVAL:''},{VITE_FIRESTORE_READ_DATABASE:'another'},{VITE_FIRESTORE_READ_CONTRACT:'proposed-04d'},{VITE_FIRESTORE_READ_APPROVAL:'owner-approved-auth-only:'+INVENTORY_READ_PROJECT},{VITE_AUTH_EMULATOR_HOST:'127.0.0.1:9299'},{FIRESTORE_EMULATOR_HOST:'127.0.0.1:8386'}])expect(()=>prepareInventoryReadConfiguration(auth,{...env,...patch},auth.authorizedOrigin)).toThrow();
+  it('requires a separate project-bound approval and the explicit candidate schema/database',()=>{
+    expect(prepareInventoryReadConfiguration(auth,env,auth.authorizedOrigin)).toEqual({projectId:INVENTORY_READ_PROJECT,databaseId:'(default)',ownerUid:authTestFixture.ownerUid,contract:'inventory-candidate-v1'});
+    for(const patch of [{VITE_FIRESTORE_READ_APPROVAL:''},{VITE_FIRESTORE_READ_DATABASE:'another'},{VITE_FIRESTORE_READ_CONTRACT:'proposed-04d'},{VITE_FIRESTORE_READ_CONTRACT:'experimental-05c1'},{VITE_FIRESTORE_READ_APPROVAL:'owner-approved-auth-only:'+INVENTORY_READ_PROJECT},{VITE_AUTH_EMULATOR_HOST:'127.0.0.1:9299'},{FIRESTORE_EMULATOR_HOST:'127.0.0.1:8386'}])expect(()=>prepareInventoryReadConfiguration(auth,{...env,...patch},auth.authorizedOrigin)).toThrow();
   });
   it('rejects another project, invalid origin, fake emulator owner and missing Auth approval',()=>{
     expect(()=>prepareInventoryReadConfiguration(authTestFixture,env,auth.authorizedOrigin)).toThrow();

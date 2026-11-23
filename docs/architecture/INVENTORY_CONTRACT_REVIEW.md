@@ -1,4 +1,8 @@
-# Inventario — propuesta de contrato para revisar en 05C-2
+# Inventario — propuestas para revisión del propietario
+
+**Actualización 05C-3:** el [contrato consolidado](CONSOLIDATED_INVENTORY_CONTRACT.md) implementa y prueba un único candidato local con presentación, siete categorías y schemaVersion=2. No aprueba producción ni migra documentos. Los detalles inferiores conservan la propuesta histórica 05C-2; donde describen código experimental son antecedentes, no el estado del candidato actual.
+
+## Propuesta histórica 05C-2
 
 **Propuesta, no aprobación ni migración.** Fecha: 23-11-2026. Complementa [OWNER_DECISION_REVIEW](OWNER_DECISION_REVIEW.md), [contrato 04D](FINAL_CONTRACT_PROPOSAL.md) e [integración](INTEGRATION_PLAN.md). El código conserva el contrato experimental plano de 05C-1; no se activan estas propuestas al publicar este documento.
 

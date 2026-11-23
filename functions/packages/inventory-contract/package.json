@@ -1,0 +1,22 @@
+{
+  "name": "@mi-casa/inventory-contract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "import": "./lib/index.js"
+    }
+  },
+  "files": [
+    "lib/index.js",
+    "lib/index.d.ts",
+    "src",
+    "tsconfig.json",
+    "build.mjs"
+  ],
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

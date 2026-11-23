@@ -3,11 +3,11 @@ import { fileURLToPath } from 'node:url';
 
 // An explicit command selects the mode; it never supplies real-project approval or SDK values.
 const mode = process.argv[2];
-if (mode !== undefined && mode !== 'auth-test') throw new Error('UNSUPPORTED_AUTH_WEB_MODE');
+if (mode !== undefined && mode !== 'auth-test' && mode !== 'legacy') throw new Error('UNSUPPORTED_AUTH_WEB_MODE');
 const test = mode === 'auth-test';
 const env = test ? { ...process.env, VITE_APP_MODE: 'auth-test' } : { ...process.env, VITE_APP_MODE: 'emulator', VITE_FIREBASE_PROJECT_ID: 'demo-mi-casa-05a',
   VITE_AUTH_EMULATOR_HOST: '127.0.0.1:9299', VITE_FIRESTORE_EMULATOR_HOST: '127.0.0.1:8386',
-  VITE_FUNCTIONS_EMULATOR_HOST: '127.0.0.1:5205' };
+  VITE_FUNCTIONS_EMULATOR_HOST: '127.0.0.1:5205', VITE_INVENTORY_CONTRACT: mode==='legacy'?'experimental-05c1':'inventory-candidate-v1' };
 const child = spawn(process.execPath, [fileURLToPath(new URL('../node_modules/vite/bin/vite.js', import.meta.url)),
   '--mode', test ? 'auth-test' : 'development', '--host', test ? 'localhost' : '127.0.0.1', '--port', test ? '5175' : '5174', '--strictPort'], { stdio: 'inherit', env });
 child.on('error', () => { console.error('LOCAL_AUTH_WEB_START_FAILED'); process.exitCode = 1; });

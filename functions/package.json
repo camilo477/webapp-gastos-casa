@@ -4,20 +4,25 @@
   "private": true,
   "type": "module",
   "main": "lib/index.js",
-  "engines": { "node": "24" },
+  "engines": {
+    "node": "24"
+  },
   "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "tsc",
-    "test": "npm run build && node --test tests/unit.test.mjs tests/inventory-unit.test.mjs",
+    "typecheck": "npm --prefix packages/inventory-contract run build && tsc --noEmit",
+    "build": "npm --prefix packages/inventory-contract run build && tsc",
+    "test": "npm run build && node --test tests/unit.test.mjs tests/inventory-unit.test.mjs tests/inventory-candidate-unit.test.mjs",
     "emulators": "npm run build && node scripts/emulators.mjs start",
     "test:emulator": "npm run build && node scripts/emulators.mjs test"
   },
   "dependencies": {
+    "@mi-casa/inventory-contract": "file:packages/inventory-contract",
     "firebase-admin": "14.5.1",
     "firebase-functions": "7.4.0"
   },
   "overrides": {
-    "@firebase/firestore": { "@grpc/grpc-js": "1.14.7" }
+    "@firebase/firestore": {
+      "@grpc/grpc-js": "1.14.7"
+    }
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "6.0.0",

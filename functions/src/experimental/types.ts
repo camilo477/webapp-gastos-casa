@@ -28,7 +28,7 @@ export type Movement = {
   id: string; productId: string; lineId?: string; kind: 'purchase' | 'adjustment';
   before: number | Status; after: number | Status; unit: BaseUnit;
 };
-export type StoredOperation = {
+type LegacyOperation = {
   schemaVersion: 1; operationId: string; kind: Intent['kind'] | 'inventoryCreate' | 'inventoryEdit' | 'inventoryAdjust'; intentHash: string;
   createdAt: TimeValue; productIds: string[]; movements: Movement[];
 } & (
@@ -36,6 +36,11 @@ export type StoredOperation = {
   | { kind: 'stockAdjust'; productId: string; expectedVersion: number; after: number | Status }
   | { kind: 'inventoryCreate' | 'inventoryEdit' | 'inventoryAdjust'; productId: string; command: unknown }
 );
+export type StoredOperation = LegacyOperation | {
+  schemaVersion:1;operationId:string;kind:'inventoryCandidate';intentHash:string;createdAt:TimeValue;
+  productIds:string[];productId:string;command:unknown;
+  movements:{id:string;productId:string;kind:'adjustment';unit:BaseUnit;before:number|Status|null;after:number|Status}[];
+};
 export type OperationReceipt = {
   status: 'confirmed' | 'already-confirmed'; operationId: string; intentHash: string; totalPaidCOP: number;
 };

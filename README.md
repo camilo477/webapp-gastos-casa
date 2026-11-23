@@ -50,6 +50,18 @@ En **05B-3** se validó correo/contraseña en el proyecto real autorizado por el
 
 **05C-2 prepara una futura lectura real, todavía bloqueada:** puerto sin modificaciones, adaptador Firestore Lite y reglas con autorización administrativa por UID, sin incluir identidades reales en archivos públicos. No está conectado a `main.tsx`; ninguna variable `.env` desbloquea esta fase. Demo, emuladores y Auth real conservan su comportamiento. `npm run test:inventory:read` prueba la preparación exclusivamente con Auth/Firestore Emulator; ejecutar separado de las demás suites que usan sus puertos. [Entrega 05C-2](docs/FASE_05C_2.md), [guía manual y región propuesta](docs/architecture/FIRESTORE_READ_PREPARATION.md), [contratos pendientes de aprobación](docs/architecture/INVENTORY_CONTRACT_REVIEW.md). No crear bases ni publicar reglas/ACL sin autorización posterior.
 
+## Contrato candidato de inventario — Fase 05C-3
+
+`npm run dev:emulator` usa ahora **inventory-candidate-v1**, esquema 2: presentación opcional, siete categorías candidatas, exacto/aproximado, cantidades y conversiones explícitas, sugerencias de coincidencia y versión única. Comparte las mismas validaciones con el servidor mediante un paquete interno portable; no añade bibliotecas externas. `dev` sigue siendo demostración y `dev:auth-test` conserva solo Authentication real.
+
+Para verlo con datos ficticios: iniciar `npm run firebase:local:start`, preparar `npm run firebase:auth:seed` y abrir `npm run dev:emulator` en `http://127.0.0.1:5174/inventario`. No usar datos reales. Si ya hay productos experimentales, el candidato avisa y no los convierte. **No borrar ni sobrescribir para ocultar el aviso:** `npm run dev:emulator:legacy` permite consultar/modificar el laboratorio anterior con su formato original; usar el perfil correspondiente al conjunto de datos. No hay selector técnico dentro de la app.
+
+`npm run test:inventory:candidate` inicia emuladores propios, prueba servidor y React y los apaga. `test:inventory:emulator` conserva las regresiones 05C-1 mediante el perfil histórico explícito; `test:inventory:read` incluye lectores históricos y candidato, siempre local. Ejecutar suites de emuladores separadamente porque comparten puertos y sus fixtures se descartan al terminar. Ningún comando migra una base existente o inicia Firebase real.
+
+El paquete `functions/packages/inventory-contract` se instala mediante los dos lockfiles locales. `dev`, pruebas y builds compilan su fuente antes de consumirla; los outputs ignorados solo se actualizan si cambia el contenido, para evitar recargas durante preflights repetidos. Desde un clon nuevo instalar las dependencias raíz y de `functions/` como en la guía. No publicar su `lib/`, datos o capturas.
+
+[Entrega 05C-3](docs/FASE_05C_3.md), [contrato candidato consolidado](docs/architecture/CONSOLIDATED_INVENTORY_CONTRACT.md) y [decisiones pendientes](docs/architecture/OWNER_DECISION_REVIEW.md). La migración disponible es únicamente una **vista previa pura**, con revisión explícita por producto; no aplica cambios. La preparación de Firestore real ahora referencia ese candidato, pero su bloqueo continúa y no se autoriza producción ni una fase posterior.
+
 ## Rutas
 
 | Ruta | Pantalla |

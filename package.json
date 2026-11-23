@@ -7,17 +7,17 @@
     "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
   },
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "dev:emulator": "node scripts/auth-web.mjs",
-    "dev:auth-test": "node scripts/auth-web.mjs auth-test",
+    "dev": "npm run build:contract && vite --host 127.0.0.1",
+    "dev:emulator": "npm run build:contract && node scripts/auth-web.mjs",
+    "dev:auth-test": "npm run build:contract && node scripts/auth-web.mjs auth-test",
     "firebase:auth:seed": "npm run build:server && node functions/scripts/seed-auth.mjs",
     "test:auth:emulator": "npm run build:server && node tests/firebase-auth/run.mjs",
     "test:inventory:emulator": "npm run build:server && node tests/firebase-inventory/run.mjs",
     "test:inventory:read": "npm run build:server && node tests/firebase-read/run.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "npm run build:contract && tsc --noEmit",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run",
+    "test": "npm run build:contract && vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:a11y": "playwright test tests/e2e/accessibility.spec.ts",
@@ -35,9 +35,13 @@
     "build:server": "npm --prefix functions run build",
     "test:server": "npm --prefix functions test",
     "test:firebase:local": "npm --prefix functions run test:emulator",
-    "firebase:local:start": "npm --prefix functions run emulators"
+    "firebase:local:start": "npm --prefix functions run emulators",
+    "build:contract": "npm --prefix functions/packages/inventory-contract run build",
+    "dev:emulator:legacy": "npm run build:contract && node scripts/auth-web.mjs legacy",
+    "test:inventory:candidate": "npm run build:server && node tests/firebase-candidate/run.mjs"
   },
   "dependencies": {
+    "@mi-casa/inventory-contract": "file:functions/packages/inventory-contract",
     "firebase": "12.19.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
